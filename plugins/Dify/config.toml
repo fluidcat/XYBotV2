@@ -5,7 +5,7 @@ api-key = "" # Dify的API Key
 base-url = "https://api.dify.ai/v1" #Dify API接口base url
 
 commands = ["ai", "dify", "聊天", "AI"]
-command-tip = """-----XYBot-----
+command-tip = """
 💬AI聊天指令：
 聊天 请求内容
 """

@@ -44,8 +44,8 @@ class AdminSignInReset(PluginBase):
         sender_wxid = message["SenderWxid"]
 
         if sender_wxid not in self.admins:
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌你配用这个指令吗？😡")
+            await bot.send_text_message(message["FromWxid"], "❌你配用这个指令吗？😡")
             return
 
         self.db.reset_all_signin_stat()
-        await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n成功重置签到状态！")
+        await bot.send_text_message(message["FromWxid"], "成功重置签到状态！")

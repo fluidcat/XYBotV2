@@ -44,10 +44,10 @@ class AdminPoint(PluginBase):
         sender_wxid = message["SenderWxid"]
 
         if sender_wxid not in self.admins:
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌你配用这个指令吗？😡")
+            await bot.send_text_message(message["FromWxid"], "❌你配用这个指令吗？😡")
             return
         elif len(command) < 3 or not command[1].isdigit():
-            await bot.send_text_message(message["FromWxid"], f"-----XYBot-----\n{self.command_format}")
+            await bot.send_text_message(message["FromWxid"], f"{self.command_format}")
             return
 
         if command[0] == "加积分":
@@ -56,7 +56,7 @@ class AdminPoint(PluginBase):
             elif "@" not in " ".join(command[2:]):
                 change_wxid = command[2]
             else:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌请不要手动@！")
+                await bot.send_text_message(message["FromWxid"], "❌请不要手动@！")
                 return
 
             change_point = int(command[1])
@@ -66,7 +66,6 @@ class AdminPoint(PluginBase):
             new_point = self.db.get_points(change_wxid)
 
             output = (
-                f"-----XYBot-----\n"
                 f"成功功给 {change_wxid} {nickname if nickname else ''} 加了 {change_point} 点积分\n"
                 f"他现在有 {new_point} 点积分"
             )
@@ -79,7 +78,7 @@ class AdminPoint(PluginBase):
             elif "@" not in " ".join(command[2:]):
                 change_wxid = command[2]
             else:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌请不要手动@！")
+                await bot.send_text_message(message["FromWxid"], "❌请不要手动@！")
                 return
 
             change_point = int(command[1])
@@ -89,7 +88,6 @@ class AdminPoint(PluginBase):
             new_point = self.db.get_points(change_wxid)
 
             output = (
-                f"-----XYBot-----\n"
                 f"成功功给 {nickname if nickname else ''} {change_wxid} 减了 {change_point} 点积分\n"
                 f"他现在有 {new_point} 点积分"
             )
@@ -102,7 +100,7 @@ class AdminPoint(PluginBase):
             elif "@" not in " ".join(command[2:]):
                 change_wxid = command[2]
             else:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌请不要手动@！")
+                await bot.send_text_message(message["FromWxid"], "❌请不要手动@！")
                 return
 
             change_point = int(command[1])
@@ -111,7 +109,6 @@ class AdminPoint(PluginBase):
             nickname = await bot.get_nickname(change_wxid)
 
             output = (
-                f"-----XYBot-----\n"
                 f"成功功将 {nickname if nickname else ''} {change_wxid} 的积分设置为 {change_point}"
             )
 

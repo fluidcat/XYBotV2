@@ -37,12 +37,9 @@ class Menu(PluginBase):
         content = str(message["Content"]).strip()
         command = content.split(" ")
 
-        if command[0] in self.command:
-            menu = (f"\n"
-                    f"{self.menu}\n"
-                    f"\n"
-                    f"来自XYBotV2 {self.version}\n"
-                    f"https://github.com/HenryXiaoYang/XYBotV2")
-            await bot.send_at_message(message["FromWxid"], menu, [message["SenderWxid"]])
-        elif command[0] == "管理员菜单":
+        if command[0] == "管理员菜单":
             await bot.send_at_message(message["FromWxid"], self.admin_menu, [message["SenderWxid"]])
+        elif command[0] in self.command:
+            menu = (f"\n"
+                    f"{self.menu}\n")
+            await bot.send_at_message(message["FromWxid"], menu, [message["SenderWxid"]])

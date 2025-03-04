@@ -40,6 +40,5 @@ class QueryPoint(PluginBase):
         points = self.db.get_points(query_wxid)
 
         output = ("\n"
-                  f"-----XYBot-----\n"
                   f"你有 {points} 点积分！😄")
         await bot.send_at_message(message["FromWxid"], output, [query_wxid])

@@ -58,7 +58,7 @@ class Warthunder(PluginBase):
 
         player_name = content[len(command[0]) + 1:]
 
-        output = (f"\n-----XYBot-----\n"
+        output = (f"\n"
                   f"正在查询玩家 {player_name} 的数据，请稍等...😄")
         a, b, c = await bot.send_at_message(message["FromWxid"], output, [message["SenderWxid"]])
 
@@ -68,19 +68,19 @@ class Warthunder(PluginBase):
 
         if data["code"] == 404:
             await bot.send_at_message(message["FromWxid"],
-                                      f"-----XYBot-----\n🈚️玩家不存在！\n请检查玩家昵称，区分大小写哦！",
+                                      f"🈚️玩家不存在！\n请检查玩家昵称，区分大小写哦！",
                                       [message["SenderWxid"]])
             await bot.revoke_message(message["FromWxid"], a, b, c)
             return
         elif data["code"] == 500:
             await bot.send_at_message(message["FromWxid"],
-                                      f"-----XYBot-----\n🙅对不起，API服务出现错误！\n请稍后再试！",
+                                      f"🙅对不起，API服务出现错误！\n请稍后再试！",
                                       [message["SenderWxid"]])
             await bot.revoke_message(message["FromWxid"], a, b, c)
             return
         elif data["code"] == 400:
             await bot.send_at_message(message["FromWxid"],
-                                      f"-----XYBot-----\n🙅对不起，API客户端出现错误！\n请稍后再试！",
+                                      f"🙅对不起，API客户端出现错误！\n请稍后再试！",
                                       [message["SenderWxid"]])
             await bot.revoke_message(message["FromWxid"], a, b, c)
             return

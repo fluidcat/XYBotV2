@@ -323,7 +323,7 @@ class Dify(PluginBase):
     @staticmethod
     async def dify_handle_error(bot: WechatAPIClient, message: dict, task_id: str, message_id: str, status: str,
                                 code: int, err_message: str):
-        output = ("-----XYBot-----\n"
+        output = (""
                   "🙅对不起，Dify出现错误！\n"
                   f"任务 ID：{task_id}\n"
                   f"消息唯一 ID：{message_id}\n"
@@ -334,19 +334,19 @@ class Dify(PluginBase):
 
     @staticmethod
     async def handle_400(bot: WechatAPIClient, message: dict, resp: aiohttp.ClientResponse):
-        output = ("-----XYBot-----\n"
+        output = (""
                   "🙅对不起，出现错误！\n"
                   f"错误信息：{(await resp.content.read()).decode('utf-8')}")
         await bot.send_at_message(message["FromWxid"], "\n" + output, [message["SenderWxid"]])
 
     @staticmethod
     async def handle_500(bot: WechatAPIClient, message: dict):
-        output = "-----XYBot-----\n🙅对不起，Dify服务内部异常，请稍后再试。"
+        output = "🙅对不起，Dify服务内部异常，请稍后再试。"
         await bot.send_at_message(message["FromWxid"], "\n" + output, [message["SenderWxid"]])
 
     @staticmethod
     async def handle_other_status(bot: WechatAPIClient, message: dict, resp: aiohttp.ClientResponse):
-        ai_resp = ("-----XYBot-----\n"
+        ai_resp = (""
                    f"🙅对不起，出现错误！\n"
                    f"状态码：{resp.status}\n"
                    f"错误信息：{(await resp.content.read()).decode('utf-8')}")
@@ -354,7 +354,7 @@ class Dify(PluginBase):
 
     @staticmethod
     async def hendle_exceptions(bot: WechatAPIClient, message: dict):
-        output = ("-----XYBot-----\n"
+        output = (""
                   "🙅对不起，出现错误！\n"
                   f"错误信息：\n"
                   f"{traceback.format_exc()}")
@@ -370,7 +370,7 @@ class Dify(PluginBase):
         else:
             if self.db.get_points(wxid) < self.price:
                 await bot.send_at_message(message["FromWxid"],
-                                          f"\n-----XYBot-----\n"
+                                          f"\n"
                                           f"😭你的积分不够啦！需要 {self.price} 积分",
                                           [wxid])
                 return False

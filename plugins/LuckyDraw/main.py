@@ -60,7 +60,7 @@ class LuckyDraw(PluginBase):
 
         draw_name = command[1]
         if draw_name not in self.probabilities.keys():
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n🤔你指定的奖池无效哦！")
+            await bot.send_text_message(message["FromWxid"], "🤔你指定的奖池无效哦！")
             return
 
         draw_count = 1
@@ -68,12 +68,12 @@ class LuckyDraw(PluginBase):
             draw_count = int(command[2])
 
         if draw_count > self.max_draw:
-            await bot.send_text_message(message["FromWxid"], f"-----XYBot-----\n😔你最多只能抽{self.max_draw}次哦！")
+            await bot.send_text_message(message["FromWxid"], f"😔你最多只能抽{self.max_draw}次哦！")
             return
 
         if target_points < self.probabilities[draw_name]["cost"] * draw_count:
             await bot.send_text_message(message["FromWxid"],
-                                        f"-----XYBot-----\n😭你积分不足以你抽{draw_count}次{draw_name}抽奖哦！")
+                                        f"😭你积分不足以你抽{draw_count}次{draw_name}抽奖哦！")
             return
 
         draw_probability = self.probabilities[draw_name]["probability"]

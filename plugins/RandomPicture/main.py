@@ -51,7 +51,7 @@ class RandomPicture(PluginBase):
             await bot.send_image_message(message["FromWxid"], image=content)
 
         except Exception as error:
-            out_message = f"-----XYBot-----\n出现错误❌！\n{error}"
+            out_message = f"出现错误❌！\n{error}"
             logger.error(traceback.format_exc())
 
             await bot.send_text_message(message["FromWxid"], out_message)

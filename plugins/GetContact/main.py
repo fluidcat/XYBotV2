@@ -47,10 +47,10 @@ class GetContact(PluginBase):
         sender_wxid = message["SenderWxid"]
 
         if sender_wxid not in self.admins:
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌你配用这个指令吗？😡")
+            await bot.send_text_message(message["FromWxid"], "❌你配用这个指令吗？😡")
             return
 
-        a, b, c = await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n正在获取通讯录信息，请稍等...")
+        a, b, c = await bot.send_text_message(message["FromWxid"], "正在获取通讯录信息，请稍等...")
 
         start_time = datetime.now()
         logger.info("开始获取通讯录信息时间：{}", start_time)
