@@ -124,15 +124,15 @@ if __name__ == "__main__":
     logger.level("API", no=1, color="<cyan>")
 
     logger.add(
-        "logs/XYBot_{time}.log",
+        "logs/XYBot_{time:YYYY_MM_DD}.log",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
         encoding="utf-8",
         enqueue=True,
         retention="2 weeks",
-        rotation="00:01",
+        rotation=lambda message, file: os.path.getsize(file.name) > 100 * 1024 * 1024,
         backtrace=True,
         diagnose=True,
-        level="DEBUG",
+        level="INFO",
     )
     logger.add(
         sys.stdout,
