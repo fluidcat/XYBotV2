@@ -31,7 +31,7 @@ class ManagePlugin(PluginBase):
         self.command = plugin_config["command"]
         self.admins = main_config["admins"]
 
-    @on_text_message
+    @on_text_message(priority=90)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         content = str(message["Content"]).strip()
         command = content.split(" ")

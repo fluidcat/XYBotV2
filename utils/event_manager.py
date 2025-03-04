@@ -34,6 +34,9 @@ class EventManager:
 
             result = await handler(*handler_args, **new_kwargs)
 
+            cmd = getattr(handler.__self__, 'command', [])
+            if message['Content'] in cmd:
+                break
             if isinstance(result, bool):
                 # True 继续执行 False 停止执行
                 if not result:
