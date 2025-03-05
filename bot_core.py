@@ -30,19 +30,25 @@ async def bot_core():
     # 启动WechatAPI服务
     server = WechatAPI.WechatAPIServer()
     api_config = main_config.get("WechatAPIServer", {})
-    redis_host = api_config.get("redis-host", "127.0.0.1")
-    redis_port = api_config.get("redis-port", 6379)
-    logger.debug("Redis 主机地址: {}:{}", redis_host, redis_port)
-    server.start(port=api_config.get("port", 9000),
-                 mode=api_config.get("mode", "release"),
-                 redis_host=redis_host,
-                 redis_port=redis_port,
-                 redis_password=api_config.get("redis-password", ""),
-                 redis_db=api_config.get("redis-db", 0))
+    remote_ip = api_config.get("remote-ip", '')
 
-    # 实例化WechatAPI客户端
-    bot = WechatAPI.WechatAPIClient("127.0.0.1", api_config.get("port", 9000))
-    bot.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
+    if not remote_ip:
+        redis_host = api_config.get("redis-host", "127.0.0.1")
+        redis_port = api_config.get("redis-port", 6379)
+        logger.debug("Redis 主机地址: {}:{}", redis_host, redis_port)
+        server.start(port=api_config.get("port", 9000),
+                     mode=api_config.get("mode", "release"),
+                     redis_host=redis_host,
+                     redis_port=redis_port,
+                     redis_password=api_config.get("redis-password", ""),
+                     redis_db=api_config.get("redis-db", 0))
+        # 实例化WechatAPI客户端
+        bot = WechatAPI.WechatAPIClient("127.0.0.1", api_config.get("port", 9000))
+        bot.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
+    else:
+        bot = WechatAPI.WechatAPIClient(remote_ip, api_config.get("remote-port", 9000))
+        bot.ignore_protect = False
+
 
     # 等待WechatAPI服务启动
     time_out = 10

@@ -14,7 +14,7 @@ def create_bot(bot_type):
         # 替换Baidu Unit为Baidu文心千帆对话接口
         # from bot.baidu.baidu_unit_bot import BaiduUnitBot
         # return BaiduUnitBot()
-        from plugins.LLMBridge.bot.bot import BaiduWenxinBot
+        from plugins.LLMBridge.bot.baidu.baidu_wenxin import BaiduWenxinBot
         return BaiduWenxinBot()
 
     elif bot_type == const.CHATGPT:
@@ -24,7 +24,7 @@ def create_bot(bot_type):
 
     elif bot_type == const.OPEN_AI:
         # OpenAI 官方对话模型API
-        from plugins.LLMBridge.bot.bot import OpenAIBot
+        from plugins.LLMBridge.bot.openai.open_ai_bot import OpenAIBot
         return OpenAIBot()
 
     elif bot_type == const.CHATGPTONAZURE:
@@ -33,7 +33,7 @@ def create_bot(bot_type):
         return AzureChatGPTBot()
 
     elif bot_type == const.XUNFEI:
-        from plugins.LLMBridge.bot.bot import XunFeiBot
+        from plugins.LLMBridge.bot.xunfei.xunfei_spark_bot import XunFeiBot
         return XunFeiBot()
 
     elif bot_type == const.LINKAI:
@@ -41,13 +41,13 @@ def create_bot(bot_type):
         return LinkAIBot()
 
     elif bot_type == const.CLAUDEAI:
-        from plugins.LLMBridge.bot.bot import ClaudeAIBot
+        from plugins.LLMBridge.bot.claude.claude_ai_bot import ClaudeAIBot
         return ClaudeAIBot()
     elif bot_type == const.CLAUDEAPI:
-        from plugins.LLMBridge.bot.bot import ClaudeAPIBot
+        from plugins.LLMBridge.bot.claudeapi.claude_api_bot import ClaudeAPIBot
         return ClaudeAPIBot()
     elif bot_type == const.QWEN:
-        from plugins.LLMBridge.bot.bot import AliQwenBot
+        from plugins.LLMBridge.bot.ali.ali_qwen_bot import AliQwenBot
         return AliQwenBot()
     elif bot_type == const.QWEN_DASHSCOPE:
         from plugins.LLMBridge.bot.dashscope.dashscope_bot import DashscopeBot
@@ -57,15 +57,15 @@ def create_bot(bot_type):
         return GoogleGeminiBot()
 
     elif bot_type == const.ZHIPU_AI:
-        from plugins.LLMBridge.bot.bot import ZHIPUAIBot
+        from plugins.LLMBridge.bot.zhipuai.zhipuai_bot import ZHIPUAIBot
         return ZHIPUAIBot()
 
     elif bot_type == const.MOONSHOT:
-        from plugins.LLMBridge.bot.bot import MoonshotBot
+        from plugins.LLMBridge.bot.moonshot.moonshot_bot import MoonshotBot
         return MoonshotBot()
     
     elif bot_type == const.MiniMax:
-        from plugins.LLMBridge.bot.bot import MinimaxBot
+        from plugins.LLMBridge.bot.minimax.minimax_bot import MinimaxBot
         return MinimaxBot()
 
 
