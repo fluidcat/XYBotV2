@@ -45,7 +45,7 @@ class News(PluginBase):
         news_txt = None
         # 头条、历史今日、GitHub榜单
         if "头条" in command[0]:
-            news_txt = await self.get_news('history', 10)
+            news_txt = await self.get_news('netease_news', 10)
         elif "历史" in command[0]:
             news_txt = await self.get_news('history')
         elif "github" in command[0]:
@@ -62,7 +62,7 @@ class News(PluginBase):
         else:
             # 其他新闻
             async with aiohttp.ClientSession() as session:
-                async with session.get("http://zj.v.api.aa1.cn/api/60s-v2/?cc=XYBot") as resp:
+                async with session.get("http://zj.v.api.aa1.cn/api/60s-v2/?cc=fluidcat") as resp:
                     image_byte = await resp.read()
             await bot.send_image_message(message["FromWxid"], image_byte)
 
