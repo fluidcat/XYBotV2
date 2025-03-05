@@ -1,6 +1,8 @@
 import copy
 from typing import Callable, Dict, List
 
+from loguru import logger
+
 
 class EventManager:
     _handlers: Dict[str, List[tuple[Callable, object, int]]] = {}
@@ -31,8 +33,10 @@ class EventManager:
             # 只对 message 进行深拷贝，api_client 保持不变
             handler_args = (api_client, copy.deepcopy(message))
             new_kwargs = {k: copy.deepcopy(v) for k, v in kwargs.items()}
-
-            result = await handler(*handler_args, **new_kwargs)
+            try:
+                result = await handler(*handler_args, **new_kwargs)
+            except Exception as e:
+                logger.error(f"plugin [{handler.__self__.__class__.__name__}] invoke plugin error: {e}")
 
             if isinstance(result, bool):
                 # True 继续执行 False 停止执行

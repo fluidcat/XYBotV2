@@ -43,7 +43,7 @@ class News(PluginBase):
         if "随机" in command[0]:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
                 async with session.get("https://cn.apihz.cn/api/xinwen/baidu.php?id=88888888&key=88888888") as resp:
-                    data = await resp.json()
+                    data = await resp.json(content_type='text/html')
 
             if data["code"] != 200:
                 await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n新闻获取失败！")
