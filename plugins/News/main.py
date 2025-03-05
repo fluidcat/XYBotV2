@@ -1,12 +1,13 @@
 import asyncio
 import tomllib
-from random import choice
+from random import sample
 
 import aiohttp
 
 from WechatAPI import WechatAPIClient
 from utils.decorators import *
 from utils.plugin_base import PluginBase
+from loguru import logger
 
 
 class News(PluginBase):
@@ -33,40 +34,58 @@ class News(PluginBase):
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
             return
-
-        content = str(message["Content"]).strip()
-        command = content.split(" ")
-
-        if command[0] not in self.command:
+        command = str(message["Content"]).strip().split(" ")
+        if not command[0].startswith('#'):
+            return
+        if command[0].lower().removeprefix('#') not in self.command:
             return
 
-        if "随机" in command[0]:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-                async with session.get("https://cn.apihz.cn/api/xinwen/baidu.php?id=88888888&key=88888888") as resp:
-                    data = await resp.json()
-
-            if data["code"] != 200:
-                await bot.send_text_message(message["FromWxid"], "新闻获取失败！")
-                return
-
-            result = data.get("data", [])
-
-            if len(result) == 0:
-                await bot.send_text_message(message["FromWxid"], "新闻获取失败！")
-                return
-
-            new = choice(result["data"])
-            await bot.send_link_message(message["FromWxid"],
-                                        title=new["word"],
-                                        url=new["rawUrl"],
-                                        description=new["desc"],
-                                        thumb_url=new["img"])
-
+        ats = [message['SenderWxid']] if message['IsGroup'] else []
+        finish = True
+        news_txt = None
+        # 头条、历史今日、GitHub榜单
+        if "头条" in command[0]:
+            news_txt = await self.get_news('history', 10)
+        elif "历史" in command[0]:
+            news_txt = await self.get_news('history')
+        elif "github" in command[0]:
+            news_txt = await self.get_news('github', desc=True)
         else:
+            finish = False
+
+        if finish:
+            if not news_txt:
+                await bot.send_at_message(message["FromWxid"], command[0] + " 获取失败！", ats)
+            else:
+                news_txt = '\n' + news_txt if ats else news_txt
+                await bot.send_at_message(message["FromWxid"], news_txt, ats)
+        else:
+            # 其他新闻
             async with aiohttp.ClientSession() as session:
                 async with session.get("http://zj.v.api.aa1.cn/api/60s-v2/?cc=XYBot") as resp:
                     image_byte = await resp.read()
             await bot.send_image_message(message["FromWxid"], image_byte)
+
+    async def get_news(self, topic='netease_news', size=None, desc=False):
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            # history 历史今天 github github热榜 netease_news 网易新闻
+            async with session.get("https://api.98dou.cn/api/hotlist?type=" + topic) as resp:
+                data = await resp.json()
+
+        if not data["success"]:
+            logger.debug(f"get_news 失败: {data}")
+            return None
+        result = data.get("data", {})
+        if not len(result):
+            return None
+        if size:
+            result = sample(result, size)
+        if desc:
+            titles = ['\n'.join([item["title"], item["desc"] + '\n']) for item in result if "title" in item]
+        else:
+            titles = [item["title"] for item in result if "title" in item]
+        news = "\n".join([f"{i + 1}. {word}" for i, word in enumerate(titles)])
+        return news
 
     @schedule('cron', hour=12)
     async def noon_news(self, bot: WechatAPIClient):

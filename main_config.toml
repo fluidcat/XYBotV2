@@ -1,6 +1,6 @@
 [WechatAPIServer]
-remote-ip = "192.168.2.2"
-remote-port = "9000"
+remote-ip = ""
+remote-port = ""
 port = 9000                # WechatAPI服务器端口，默认9000，如有冲突可修改
 mode = "release"           # 运行模式：release(生产环境)，debug(调试模式)
 redis-host = "127.0.0.1"   # Redis服务器地址，本地使用127.0.0.1
