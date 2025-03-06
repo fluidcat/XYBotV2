@@ -8,6 +8,7 @@ from WechatAPI import WechatAPIClient
 from WechatAPI.Client.protect import protector
 from database.messsagDB import MessageDB
 from utils.event_manager import EventManager
+import re
 
 
 class XYBot:
@@ -114,11 +115,10 @@ class XYBot:
             logger.error("解析文本消息失败: {}", e)
             return
 
-        if ats:
-            ats = ats.strip(",").split(",")
-        else:  # 修复
-            ats = []
-        message["Ats"] = ats if ats and ats[0] != "" else []
+        message["Ats"] = list(filter(lambda s: s.strip(), ats.split(',')))
+        message['at_bot'] = self.wxid in message["Ats"]
+        # 处理command, 删掉@人的字符串
+        message['command'] = re.sub(r"@[^\u2005]+\u2005", "", str(message["Content"]))
 
         # 保存消息到数据库
         await self.msg_db.save_message(

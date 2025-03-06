@@ -47,3 +47,11 @@ class WechatAPIClient(LoginMixin, MessageMixin, FriendMixin, ChatroomMixin, User
         output += content
 
         return await self.send_text_message(wxid, output, at)
+
+    async def send_reply_message(self, message: dict, content: str) -> tuple[int, int, int]:
+        target_id = message.get('FromWxid')
+        ats = []
+        if message.get('IsGroup') and message.get('reply_ats'):
+            content = '\n' + content
+            ats = message.get('reply_ats')
+        return await self.send_at_message(target_id, content, ats)

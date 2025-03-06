@@ -39,7 +39,7 @@ class EventManager:
             try:
                 result = await handler(*handler_args, **new_kwargs)
             except Exception as e:
-                logger.error(f"plugin [{instance.__class__.__name__}] invoke plugin error: {e}")
+                logger.exception(f"plugin [{instance.__class__.__name__}] invoke plugin error.", e)
 
             # False-停止执行，True\其他-我也不知道你返回了个啥玩意，反正继续执行就是了
             if isinstance(result, bool) and not result:
