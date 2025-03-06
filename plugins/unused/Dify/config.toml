@@ -1,7 +1,7 @@
 [Dify]
-enable = true
+enable = false
 
-api-key = "" # Dify的API Key
+api-key = "app-TkYkNrGDuyjT1uDe46HO7hYI" # Dify的API Key
 base-url = "https://api.dify.ai/v1" #Dify API接口base url
 
 commands = ["ai", "dify", "聊天", "AI"]
