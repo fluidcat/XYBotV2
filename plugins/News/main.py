@@ -34,31 +34,27 @@ class News(PluginBase):
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
             return
-        command = str(message["Content"]).strip().split(" ")
-        if not command[0].startswith('#'):
+        command = message.get('command')
+        if not command.startswith('#'):
             return
-        if command[0].lower().removeprefix('#') not in self.command:
+        if command.lower().removeprefix('#') not in self.command:
             return
 
-        ats = [message['SenderWxid']] if message['IsGroup'] else []
+        message['reply_ats'] = [message['SenderWxid']] if message['IsGroup'] else []
         finish = True
         news_txt = None
         # 头条、历史今日、GitHub榜单
-        if "头条" in command[0]:
+        if "头条" in command:
             news_txt = await self.get_news('netease_news', 10)
-        elif "历史" in command[0]:
+        elif "历史" in command:
             news_txt = await self.get_news('history')
-        elif "github" in command[0]:
+        elif "github" in command:
             news_txt = await self.get_news('github', desc=True)
         else:
             finish = False
 
         if finish:
-            if not news_txt:
-                await bot.send_at_message(message["FromWxid"], command[0] + " 获取失败！", ats)
-            else:
-                news_txt = '\n' + news_txt if ats else news_txt
-                await bot.send_at_message(message["FromWxid"], news_txt, ats)
+            await bot.send_reply_message(message, news_txt if news_txt else command + " 获取失败！")
         else:
             # 其他新闻
             async with aiohttp.ClientSession() as session:

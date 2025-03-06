@@ -26,8 +26,7 @@ class LLMBridge(PluginBase):
 
         plugin_config = config["LLMBridge"]
         self.enable = plugin_config["enable"]
-        self.other_plugin_cmd = plugin_config["other-plugin-cmd"]
-        self.commands = ['角色']
+        self.commands = plugin_config["commands"]
 
         load_config()
         self.bridge = Bridge()
@@ -36,15 +35,15 @@ class LLMBridge(PluginBase):
         if not self.enable:
             return False
 
-        command = str(message["Content"]).strip().split()
-        command = '' if not command else command[0]
-        at_bot = bot.wxid in message["Ats"]
+        command = message.get('command')
+        at_bot = message.get('at_bot', False)
 
-        # 群聊：不是指令&&没有@机器人，不需要ai回复
-        if message["IsGroup"] and command not in self.commands and not at_bot:
+        # '#'开头的都是指令，判断是不是这个插件的指令
+        if command.startswith('#') and command.removeprefix('#') not in self.commands:
             return False
 
-        if command in self.other_plugin_cmd:  # 指令来自其他插件
+        # 群聊：不是指令&&没有@机器人，不需要ai回复
+        if message["IsGroup"] and not command.startswith('#') and not at_bot:
             return False
 
         if message["SenderWxid"] in self.admins:  # 自己发送不进行AI回答
@@ -62,7 +61,7 @@ class LLMBridge(PluginBase):
         if not self.check(bot, message):
             return
         # 群聊走到这里，只有指令
-        if message["IsGroup"]:
+        if message["IsGroup"] and message.get('command') not in ['#清除记忆', '#清除所有', '#更新配置']:
             pass
             return
 
@@ -72,11 +71,15 @@ class LLMBridge(PluginBase):
         context.kwargs = dict()
         context["session_id"] = message.get("FromWxid")
         reply = self.bridge.fetch_reply_content(query, context)
-        await bot.send_text_message(message.get("FromWxid"), reply.content)
+        await bot.send_reply_message(message, reply.content)
 
     @on_at_message(priority=20)
     async def handle_at(self, bot: WechatAPIClient, message: dict):
         if not self.check(bot, message):
+            return
+        # 指令
+        if message.get('command').startswith('#') and message.get('command') not in ['#清除记忆', '#清除所有', '#更新配置']:
+            pass
             return
 
         query = str(message["Content"]).strip()
@@ -85,11 +88,11 @@ class LLMBridge(PluginBase):
         context.kwargs = dict()
         if message["IsGroup"]:
             context["session_id"] = f"{message.get('FromWxid')}@{message.get('SenderWxid')}"
+            message['reply_ats'] = [message["SenderWxid"]]
         else:
             context["session_id"] = message.get('FromWxid')
-
         reply = self.bridge.fetch_reply_content(query, context)
-        await bot.send_at_message(message.get("FromWxid"), '\n'+reply.content, [message["SenderWxid"]])
+        await bot.send_reply_message(message, reply.content)
 
     @on_voice_message(priority=20)
     async def handle_voice(self, bot: WechatAPIClient, message: dict):

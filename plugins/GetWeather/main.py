@@ -6,6 +6,7 @@ import jieba
 from WechatAPI import WechatAPIClient
 from utils.decorators import *
 from utils.plugin_base import PluginBase
+from datetime import datetime
 
 
 class GetWeather(PluginBase):
@@ -30,68 +31,87 @@ class GetWeather(PluginBase):
 
     @on_text_message
     async def handle_text(self, bot: WechatAPIClient, message: dict):
-        if not self.enable:
+        return await self.handle(bot, message)
+
+    @on_at_message
+    async def handle_at_text(self, bot: WechatAPIClient, message: dict):
+        no_at_bot = bot.wxid not in message["Ats"]
+        if no_at_bot:
+            return
+        command = message.get('command')
+
+        if not command.startswith("#") and "天气" in command:
+            command = '#' + command
+
+        message['command'] = command
+        return await self.handle(bot, message)
+
+    async def handle(self, bot: WechatAPIClient, message: dict):
+        command = message.get('command')
+        if not command.startswith("#") or "天气" not in command:
             return
 
-        if "天气" not in message["Content"]:
-            return
+        command = command.removeprefix('#').replace(" ", "")
+        command = list(jieba.cut(command))
 
-        content = str(message["Content"]).replace(" ", "")
-        command = list(jieba.cut(content))
+        if message['IsGroup']:
+            message['reply_ats'] = [message["SenderWxid"]]
 
         if len(command) == 1:
-            await bot.send_at_message(message["FromWxid"], "\n" + self.command_format, [message["SenderWxid"]])
+            await bot.send_reply_message(message, self.command_format)
             return
         elif len(command) > 3:
             return
 
         # 配置密钥检查
         if not self.api_key:
-            await bot.send_at_message(message["FromWxid"], "\n你还没配置天气API密钥！", [message["SenderWxid"]])
+            await bot.send_reply_message(message, '你还没配置天气API密钥')
             return
 
         command.remove("天气")
         request_loc = "".join(command)
 
-        geo_api_url = f'https://geoapi.qweather.com/v2/city/lookup?key={self.api_key}&number=1&location={request_loc}'
         conn_ssl = aiohttp.TCPConnector(ssl=False)
-        async with aiohttp.request('GET', url=geo_api_url, connector=conn_ssl) as response:
+        session = aiohttp.ClientSession(connector=conn_ssl)
+
+        geo_api_url = f'https://geoapi.qweather.com/v2/city/lookup?key={self.api_key}&number=1&location={request_loc}'
+        async with session.get(geo_api_url) as response:
             geoapi_json = await response.json()
-            await conn_ssl.close()
 
-        if geoapi_json['code'] == '404':
-            await bot.send_at_message(message["FromWxid"], "\n⚠️查无此地！", [message["SenderWxid"]])
+        if geoapi_json.get('code') == '404':
+            await bot.send_reply_message(message, "⚠️查无此地！")
             return
-
-        elif geoapi_json['code'] != '200':
-            await bot.send_at_message(message["FromWxid"], f"\n⚠️请求失败\n{geoapi_json}", [message["SenderWxid"]])
+        elif geoapi_json.get('code') != '200':
+            await bot.send_reply_message(message, "⚠️请求失败\n{geoapi_json}")
             return
 
         country = geoapi_json["location"][0]["country"]
         adm1 = geoapi_json["location"][0]["adm1"]
         adm2 = geoapi_json["location"][0]["adm2"]
         city_id = geoapi_json["location"][0]["id"]
-
         # 请求现在天气api
-        conn_ssl = aiohttp.TCPConnector(verify_ssl=False)
         now_weather_api_url = f'https://devapi.qweather.com/v7/weather/now?key={self.api_key}&location={city_id}'
-        async with aiohttp.request('GET', url=now_weather_api_url, connector=conn_ssl) as response:
+        async with session.get(now_weather_api_url) as response:
             now_weather_api_json = await response.json()
-            await conn_ssl.close()
 
         # 请求预报天气api
-        conn_ssl = aiohttp.TCPConnector(verify_ssl=False)
         weather_forecast_api_url = f'https://devapi.qweather.com/v7/weather/7d?key={self.api_key}&location={city_id}'
-        async with aiohttp.request('GET', url=weather_forecast_api_url, connector=conn_ssl) as response:
+        async with session.get(weather_forecast_api_url) as response:
             weather_forecast_api_json = await response.json()
-            await conn_ssl.close()
 
         out_message = self.compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json)
-        await bot.send_at_message(message["FromWxid"], "\n" + out_message, [message["SenderWxid"]])
+        await bot.send_reply_message(message, out_message)
+        await session.close()
+        await conn_ssl.close()
 
     @staticmethod
     def compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json):
         update_time = now_weather_api_json['updateTime']
+        try:
+            update_time = datetime.fromisoformat(update_time).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            update_time = now_weather_api_json['updateTime']
+
         now_temperature = now_weather_api_json['now']['temp']
         now_feelslike = now_weather_api_json['now']['feelsLike']
         now_weather = now_weather_api_json['now']['text']
@@ -101,20 +121,20 @@ class GetWeather(PluginBase):
         now_precip = now_weather_api_json['now']['precip']
         now_visibility = now_weather_api_json['now']['vis']
         now_uvindex = weather_forecast_api_json['daily'][0]['uvIndex']
+        max_len = 6
 
         message = (
-            f"----- XYBot -----\n"
-            f"{country}{adm1}{adm2} 实时天气☁️\n"
+            f"☁️{country}{adm1}{adm2} 实时天气☁️\n"
             f"⏰更新时间：{update_time}\n\n"
-            f"🌡️当前温度：{now_temperature}℃\n"
-            f"🌡️体感温度：{now_feelslike}℃\n"
-            f"☁️天气：{now_weather}\n"
-            f"☀️紫外线指数：{now_uvindex}\n"
-            f"🌬️风向：{now_wind_direction}\n"
-            f"🌬️风力：{now_wind_scale}级\n"
-            f"💦湿度：{now_humidity}%\n"
-            f"🌧️降水量：{now_precip}mm/h\n"
-            f"👀能见度：{now_visibility}km\n\n"
+            f"🌡️ {'当前温度： ':　<{max_len}}　{now_temperature}℃\n"
+            f"🌡️ {'体感温度： ':　<{max_len}}　{now_feelslike}℃\n"
+            f"☁️{'天气：':　<{max_len}}{now_weather}\n"
+            f"☀️{'紫外线指数：':　<{max_len}}{now_uvindex}\n"
+            f"🌬️{'风向：':　<{max_len}}{now_wind_direction}\n"
+            f"🌬️{'风力：':　<{max_len}}{now_wind_scale}级\n"
+            f"💦{'湿度：':　<{max_len}}{now_humidity}%\n"
+            f"🌧️{'降水量：':　<{max_len}}{now_precip}mm/h\n"
+            f"👀{'能见度：':　<{max_len}}{now_visibility}km\n\n"
             f"☁️未来3天 {adm2} 天气：\n"
         )
         for day in weather_forecast_api_json['daily'][1:4]:
