@@ -15,7 +15,7 @@ class EventManager:
             if hasattr(method, '_event_type'):
                 event_type = getattr(method, '_event_type')
                 priority = getattr(method, '_priority', 50)
-                
+
                 if event_type not in cls._handlers:
                     cls._handlers[event_type] = []
                 cls._handlers[event_type].append((method, instance, priority))
@@ -30,23 +30,20 @@ class EventManager:
 
         api_client, message = args
         for handler, instance, priority in cls._handlers[event_type]:
+            if not getattr(instance, 'enable', False):
+                continue
             # 只对 message 进行深拷贝，api_client 保持不变
             handler_args = (api_client, copy.deepcopy(message))
             new_kwargs = {k: copy.deepcopy(v) for k, v in kwargs.items()}
+            result = True
             try:
                 result = await handler(*handler_args, **new_kwargs)
             except Exception as e:
-                logger.error(f"plugin [{handler.__self__.__class__.__name__}] invoke plugin error: {e}")
+                logger.error(f"plugin [{instance.__class__.__name__}] invoke plugin error: {e}")
 
-            cmd = getattr(handler.__self__, 'command', [])
-            if message['Content'] in cmd:
+            # False-停止执行，True\其他-我也不知道你返回了个啥玩意，反正继续执行就是了
+            if isinstance(result, bool) and not result:
                 break
-            if isinstance(result, bool):
-                # True 继续执行 False 停止执行
-                if not result:
-                    break
-            else:
-                continue  # 我也不知道你返回了个啥玩意，反正继续执行就是了
 
     @classmethod
     def unbind_instance(cls, instance: object):
