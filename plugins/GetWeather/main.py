@@ -72,7 +72,7 @@ class GetWeather(PluginBase):
         command.remove("天气")
         request_loc = "".join(command)
         try:
-            weather = self.generate_weather(request_loc)
+            weather = await self.generate_weather(request_loc)
         except Exception as e:
             weather = str(e)
         await bot.send_reply_message(message, weather)

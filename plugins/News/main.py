@@ -94,29 +94,14 @@ class News(PluginBase):
 
     @schedule('cron', hour='7,12,18,21', jitter=30 * 60)
     async def schedule_msg(self, bot: WechatAPIClient):
-        if not self.enable_schedule:
-            return
-
-        chatroom = ['24233177454@chatroom']
-        wxid = []
-
-        all_ids = list(set(chatroom) | set(wxid))
-        if not all_ids:
-            return
-        now = datetime.now()
-        news = f'📰新闻快报 {now.hour}:{now.minute}📰\n' + await self.get_news('netease_news', 15)
-
-        for wid in list(set(chatroom) | set(wxid)):
-            await bot.send_text_message(wid, news)
+        news = f'📰新闻快报  {datetime.now().strftime("%H:%M")}📰\n\n' + await self.get_news('netease_news', 15)
+        await self.send_mass(bot, news)
 
     @schedule('cron', hour='8', jitter=30 * 60)
     async def daily_news(self, bot: WechatAPIClient):
-        if not self.enable_schedule:
-            return
-
-        now = datetime.now()
-        history = f'🕰历史今天  {now.month}月{now.day}日🕰\n\n' + await self.get_news('history')
-        github = f'🔝GitHub  {now.month}月{now.day}日🔝\n' + await self.get_news('github', desc=True)
+        today = datetime.now().strftime("%m月%d日")
+        history = f'🕰历史今天  {today}🕰\n\n' + await self.get_news('history')
+        github = f'🔝GitHub  {today}🔝\n' + await self.get_news('github', desc=True)
 
         await self.send_mass(bot, history)
         await self.send_mass(bot, github)
