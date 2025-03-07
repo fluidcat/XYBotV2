@@ -190,6 +190,13 @@ async def bot_core():
     loaded_plugins = await plugin_manager.load_plugins_from_directory(bot, load_disabled_plugin=False)
     logger.success(f"已加载插件: {loaded_plugins}")
 
+    scheduler.print_jobs(out=type(
+        "", (object,), {
+            "write": lambda self, log: logger.debug(log.strip()) if log.strip() else None,
+            "flush": lambda self: None,
+        }
+    )())
+
     # ========== 开始接受消息 ========== #
 
     # 先接受堆积消息

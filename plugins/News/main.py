@@ -1,5 +1,6 @@
 import asyncio
 import tomllib
+from datetime import datetime
 from random import sample
 
 import aiohttp
@@ -8,6 +9,8 @@ from WechatAPI import WechatAPIClient
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 from loguru import logger
+from utils import const
+import html
 
 
 class News(PluginBase):
@@ -27,7 +30,7 @@ class News(PluginBase):
         config = plugin_config["News"]
 
         self.enable = config["enable"]
-        self.enable_schedule_news = config["enable-schedule-news"]
+        self.enable_schedule = config["enable-schedule"]
         self.command = config["command"]
 
     @on_text_message
@@ -62,6 +65,10 @@ class News(PluginBase):
                     image_byte = await resp.read()
             await bot.send_image_message(message["FromWxid"], image_byte)
 
+    @on_at_message
+    async def handle_at(self, bot: WechatAPIClient, message: dict):
+        return await self.handle_text(bot, message)
+
     async def get_news(self, topic='netease_news', size=None, desc=False):
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             # history 历史今天 github github热榜 netease_news 网易新闻
@@ -72,6 +79,8 @@ class News(PluginBase):
             logger.debug(f"get_news 失败: {data}")
             return None
         result = data.get("data", {})
+        if topic == 'history':
+            result = list(filter(lambda e: '出生' not in e.get('title'), result))
         if not len(result):
             return None
         if size:
@@ -79,11 +88,40 @@ class News(PluginBase):
         if desc:
             titles = ['\n'.join([item["title"], item["desc"] + '\n']) for item in result if "title" in item]
         else:
-            titles = [item["title"] for item in result if "title" in item]
-        news = "\n".join([f"{i + 1}. {word}" for i, word in enumerate(titles)])
+            titles = [html.unescape(item["title"]) for item in result if "title" in item]
+        news = "\n".join([f"{const.NUMBERS[i + 1]} {word}" for i, word in enumerate(titles)])
         return news
 
-    @schedule('cron', hour=12)
+    @schedule('cron', hour='7,12,18,21', jitter=30 * 60)
+    async def schedule_msg(self, bot: WechatAPIClient):
+        if not self.enable_schedule:
+            return
+
+        chatroom = ['24233177454@chatroom']
+        wxid = []
+
+        all_ids = list(set(chatroom) | set(wxid))
+        if not all_ids:
+            return
+        now = datetime.now()
+        news = f'📰新闻快报 {now.hour}:{now.minute}📰\n' + await self.get_news('netease_news', 15)
+
+        for wid in list(set(chatroom) | set(wxid)):
+            await bot.send_text_message(wid, news)
+
+    @schedule('cron', hour='8', jitter=30 * 60)
+    async def daily_news(self, bot: WechatAPIClient):
+        if not self.enable_schedule:
+            return
+
+        now = datetime.now()
+        history = f'🕰历史今天  {now.month}月{now.day}日🕰\n\n' + await self.get_news('history')
+        github = f'🔝GitHub  {now.month}月{now.day}日🔝\n' + await self.get_news('github', desc=True)
+
+        await self.send_mass(bot, history)
+        await self.send_mass(bot, github)
+
+    # @schedule('cron', hour=12)
     async def noon_news(self, bot: WechatAPIClient):
         if not self.enable_schedule_news:
             return
@@ -110,7 +148,7 @@ class News(PluginBase):
             await bot.send_image_message(id, iamge_byte)
             await asyncio.sleep(2)
 
-    @schedule('cron', hour=18)
+    # @schedule('cron', hour=18)
     async def night_news(self, bot: WechatAPIClient):
         if not self.enable_schedule_news:
             return

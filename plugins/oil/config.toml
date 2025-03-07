@@ -1,4 +1,5 @@
 [OilPrice]
 enable = true
-enable-schedule-news = false # 是否每天早上和中午自动推送新闻？
+enable-schedule = true
+schedule-province = ['广东', '北京', '上海', '海南', '辽宁']
 command = ["油价"]

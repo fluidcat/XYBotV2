@@ -26,6 +26,7 @@ class GetWeather(PluginBase):
         config = plugin_config["GetWeather"]
 
         self.enable = config["enable"]
+        self.enable_schedule = config["enable-schedule"]
         self.command_format = config["command-format"]
         self.api_key = config["api-key"]
 
@@ -70,7 +71,18 @@ class GetWeather(PluginBase):
 
         command.remove("天气")
         request_loc = "".join(command)
+        try:
+            weather = self.generate_weather(request_loc)
+        except Exception as e:
+            weather = str(e)
+        await bot.send_reply_message(message, weather)
 
+    @schedule('cron', hour='7', jitter=30 * 60)
+    async def daily_weather(self, bot: WechatAPIClient):
+        wth = await self.generate_weather("深圳")
+        await self.send_mass(bot, wth)
+
+    async def generate_weather(self, request_loc):
         conn_ssl = aiohttp.TCPConnector(ssl=False)
         session = aiohttp.ClientSession(connector=conn_ssl)
 
@@ -79,11 +91,9 @@ class GetWeather(PluginBase):
             geoapi_json = await response.json()
 
         if geoapi_json.get('code') == '404':
-            await bot.send_reply_message(message, "⚠️查无此地！")
-            return
+            raise Exception("⚠️查无此地！")
         elif geoapi_json.get('code') != '200':
-            await bot.send_reply_message(message, "⚠️请求失败\n{geoapi_json}")
-            return
+            raise Exception("⚠️请求失败\n{geoapi_json}")
 
         country = geoapi_json["location"][0]["country"]
         adm1 = geoapi_json["location"][0]["adm1"]
@@ -99,10 +109,11 @@ class GetWeather(PluginBase):
         async with session.get(weather_forecast_api_url) as response:
             weather_forecast_api_json = await response.json()
 
-        out_message = self.compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json)
-        await bot.send_reply_message(message, out_message)
         await session.close()
         await conn_ssl.close()
+
+        out_message = self.compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json)
+        return out_message
 
     @staticmethod
     def compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json):

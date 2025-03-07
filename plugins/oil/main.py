@@ -1,4 +1,5 @@
 import tomllib
+from datetime import datetime
 
 import aiohttp
 import jieba
@@ -26,6 +27,8 @@ class OilPrice(PluginBase):
 
         self.enable = config["enable"]
         self.command = config["command"]
+        self.schedule_province = config["schedule-province"]
+        self.enable_schedule = config["enable-schedule"]
 
     @on_text_message
     async def handle_text(self, bot: WechatAPIClient, message: dict):
@@ -40,6 +43,24 @@ class OilPrice(PluginBase):
         data = await self.get_oil_data()
         image = draw(data)
         await bot.send_image_message(message["FromWxid"], image)
+
+    @schedule('cron', hour='9', jitter=30 * 60)
+    async def daily_notify(self, bot: WechatAPIClient):
+        provence = ['广东', '北京', '上海', '海南', '辽宁']
+        list_json = await self.get_oil_data()
+        oil = [[item.get(p) for p in provence] for item in list_json]
+        _92, _95, _98, _cy = oil
+        width = 7
+        blank = '\u2002'
+        now = datetime.now()
+        msg = (
+            f"🛢️油价快报  {now.month}月{now.day}日🛢️\n"
+            f"　　　{'92# ':{blank}<{width}}{'95# ':{blank}<{width}}{'98# ':{blank}<{width}}柴油\n"
+        )
+        for i, p in enumerate(provence):
+            msg += f"{p}　{_92[i]:{blank}<{width}}{_95[i]:{blank}<{width}}{_98[i]:{blank}<{width}}{_cy[i]}\n"
+
+        await self.send_mass(bot, msg.strip())
 
     @daily_cache
     async def get_oil_data(self):

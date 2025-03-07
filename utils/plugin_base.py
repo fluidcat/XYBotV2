@@ -1,6 +1,7 @@
 from abc import ABC
 
 from loguru import logger
+from utils.mass_util import send_mass
 
 from .decorators import scheduler, add_job_safe, remove_job_safe
 
@@ -15,7 +16,9 @@ class PluginBase(ABC):
 
     def __init__(self):
         self.enabled = False
+        self.enable_schedule = False
         self._scheduled_jobs = set()
+        self.send_mass = send_mass
 
     async def on_enable(self, bot=None):
         """插件启用时调用"""
@@ -23,7 +26,7 @@ class PluginBase(ABC):
         # 定时任务
         for method_name in dir(self):
             method = getattr(self, method_name)
-            if hasattr(method, '_is_scheduled'):
+            if hasattr(method, '_is_scheduled') and self.enable_schedule:
                 job_id = getattr(method, '_job_id')
                 trigger = getattr(method, '_schedule_trigger')
                 trigger_args = getattr(method, '_schedule_args')
