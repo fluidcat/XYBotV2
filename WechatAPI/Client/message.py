@@ -24,6 +24,7 @@ class MessageMixin(WechatAPIClientBase):
         super().__init__(ip, port)
         self._message_queue = Queue()
         self._is_processing = False
+        self.stop_sync_message = False
 
     async def _process_message_queue(self):
         """
@@ -629,6 +630,8 @@ class MessageMixin(WechatAPIClientBase):
         """
         if not self.wxid:
             raise UserLoggedOut("请先登录")
+        if self.stop_sync_message:
+            return {}
 
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             json_param = {"Wxid": self.wxid, "Scene": 0, "Synckey": ""}
