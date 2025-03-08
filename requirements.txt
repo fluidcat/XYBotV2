@@ -22,6 +22,7 @@ pillow~=10.4.0
 pydantic~=2.10.5
 aiosqlite~=0.20.0
 
+dynaconf
 openai==0.27.8
 linkai>=0.0.6.0
 broadscope_bailian

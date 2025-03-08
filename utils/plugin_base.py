@@ -1,7 +1,10 @@
+import inspect
 from abc import ABC
 
+from dynaconf import Dynaconf
 from loguru import logger
 from utils.mass_util import send_mass
+from pathlib import Path
 
 from .decorators import scheduler, add_job_safe, remove_job_safe
 
@@ -19,6 +22,15 @@ class PluginBase(ABC):
         self.enable_schedule = False
         self._scheduled_jobs = set()
         self.send_mass = send_mass
+        self.dir_path = Path(inspect.getmodule(self.__class__).__file__).resolve().parent
+
+    def loadConfig(self, config: str):
+        return Dynaconf(
+            settings_files=[config],
+            environments=False,
+            envvar_prefix='XYBOT',
+            load_dotenv=True,
+        )
 
     async def on_enable(self, bot=None):
         """插件启用时调用"""

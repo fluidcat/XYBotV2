@@ -27,15 +27,16 @@ timezone = "Asia/Shanghai"             # 时区设置，中国用户使用 Asia/
 auto-restart = false                 # 仅建议在开发时启用，生产环境保持false
 
 # 消息过滤设置
-ignore-mode = "None"            # 消息处理模式：
+ignore-mode = "Whitelist"
+# 消息处理模式：
 # "None" - 处理所有消息
 # "Whitelist" - 仅处理白名单消息
 # "Blacklist" - 屏蔽黑名单消息
 
 whitelist = [# 白名单列表
-    "wxid_1", # 个人用户微信ID
-    "wxid_2",
-    "111@chatroom", # 群聊ID
+    "ghost15816527125", # 个人用户微信ID
+    "wxid_j44mhyp73ubp21",
+    "45212824964@chatroom", # 群聊ID
     "222@chatroom"
 ]
 

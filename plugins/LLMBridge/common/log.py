@@ -1,38 +1,32 @@
 import os
+import logging
 
-from loguru import logger as logging
+from loguru import logger as loguru_logger
 import sys
 
 
+class PropagateHandler(logging.Handler):
+    def emit(self, record):
+        # 将 logging 的日志记录传递给 loguru
+        logger_opt = loguru_logger.opt(depth=6, exception=record.exc_info)
+        logger_opt.log(record.levelname, record.getMessage())
+
+
 def _reset_logger(log):
-    logger.remove()
-
-    logger.level("API", no=1, color="<cyan>")
-
-    logger.add(
-        "logs/XYBot_{time:YYYY_MM_DD}.log",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-        encoding="utf-8",
-        enqueue=True,
-        retention="2 weeks",
-        rotation=lambda message, file: os.path.getsize(file.name) > 100 * 1024 * 1024,
-        backtrace=True,
-        diagnose=True,
-        level="INFO",
-    )
-    logger.add(
-        sys.stdout,
-        colorize=True,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | {message}",
-        level="TRACE",
-        enqueue=True,
-        backtrace=True,
-        diagnose=True,
-    )
+    for handler in log.handlers:
+        handler.close()
+        log.removeHandler(handler)
+        del handler
+    log.handlers.clear()
+    log.propagate = False
+    log.addHandler(PropagateHandler())
 
 
 def _get_logger():
-    return logging
+    log = logging.getLogger("log")
+    _reset_logger(log)
+    log.setLevel(logging.DEBUG)
+    return log
 
 
 # 日志句柄

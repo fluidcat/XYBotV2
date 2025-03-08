@@ -5,6 +5,7 @@ import time
 import tomllib
 from pathlib import Path
 
+from dynaconf import Dynaconf
 from loguru import logger
 
 import WechatAPI
@@ -22,15 +23,20 @@ async def bot_core():
 
     # 读取主设置
     config_path = script_dir / "main_config.toml"
-    with open(config_path, "rb") as f:
-        main_config = tomllib.load(f)
 
+    main_config = Dynaconf(
+        settings_files=[config_path],
+        environments=False,
+        envvar_prefix='XYBOT',
+        load_dotenv=True,
+    )
     logger.success("读取主设置成功")
 
     # 启动WechatAPI服务
     server = WechatAPI.WechatAPIServer()
     api_config = main_config.get("WechatAPIServer", {})
     remote_ip = api_config.get("remote-ip", '')
+    remote_port = api_config.get("remote-port", 9000)
 
     if not remote_ip:
         redis_host = api_config.get("redis-host", "127.0.0.1")
@@ -46,9 +52,8 @@ async def bot_core():
         bot = WechatAPI.WechatAPIClient("127.0.0.1", api_config.get("port", 9000))
         bot.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
     else:
-        bot = WechatAPI.WechatAPIClient(remote_ip, api_config.get("remote-port", 9000))
+        bot = WechatAPI.WechatAPIClient(remote_ip, remote_port)
         bot.ignore_protect = False
-
 
     # 等待WechatAPI服务启动
     time_out = 10

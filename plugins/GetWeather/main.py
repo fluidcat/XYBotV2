@@ -20,10 +20,7 @@ class GetWeather(PluginBase):
     def __init__(self):
         super().__init__()
 
-        with open("plugins/GetWeather/config.toml", "rb") as f:
-            plugin_config = tomllib.load(f)
-
-        config = plugin_config["GetWeather"]
+        config = self.loadConfig(self.dir_path / 'config.toml')["GetWeather"]
 
         self.enable = config["enable"]
         self.enable_schedule = config["enable-schedule"]

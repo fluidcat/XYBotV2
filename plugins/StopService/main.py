@@ -42,6 +42,7 @@ class StopService(PluginBase):
             return
         bot.stop_sync_message = True
         logger.info("xybot 已经停止处理消息")
+        await bot.send_reply_message(message, "我已经已经停止处理消息")
         return False
 
     @on_at_message(priority=50)
