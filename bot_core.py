@@ -2,16 +2,15 @@ import asyncio
 import json
 import os
 import time
-import tomllib
 from pathlib import Path
 
-from dynaconf import Dynaconf
 from loguru import logger
 
 import WechatAPI
 from database.XYBotDB import XYBotDB
 from database.keyvalDB import KeyvalDB
 from database.messsagDB import MessageDB
+from utils.config_util import loadConfig
 from utils.decorators import scheduler
 from utils.plugin_manager import plugin_manager
 from utils.xybot import XYBot
@@ -24,12 +23,7 @@ async def bot_core():
     # 读取主设置
     config_path = script_dir / "main_config.toml"
 
-    main_config = Dynaconf(
-        settings_files=[config_path],
-        environments=False,
-        envvar_prefix='XYBOT',
-        load_dotenv=True,
-    )
+    main_config = loadConfig(config_path)
     logger.success("读取主设置成功")
 
     # 启动WechatAPI服务

@@ -1,12 +1,12 @@
-import tomllib
+from datetime import datetime
 
 import aiohttp
 import jieba
 
 from WechatAPI import WechatAPIClient
+from utils.config_util import loadConfig
 from utils.decorators import *
 from utils.plugin_base import PluginBase
-from datetime import datetime
 
 
 class GetWeather(PluginBase):
@@ -20,7 +20,7 @@ class GetWeather(PluginBase):
     def __init__(self):
         super().__init__()
 
-        config = self.loadConfig(self.dir_path / 'config.toml')["GetWeather"]
+        config = loadConfig(self.dir_path / 'config.toml')["GetWeather"]
 
         self.enable = config["enable"]
         self.enable_schedule = config["enable-schedule"]

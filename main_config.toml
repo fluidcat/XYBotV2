@@ -46,3 +46,8 @@ blacklist = [# 黑名单列表
     "333@chatroom", # 群聊ID
     "444@chatroom"
 ]
+
+sch_mass_chatroom = [
+    "45212824964@chatroom"
+]
+sch_mass_wxid = []

@@ -51,7 +51,7 @@ class News(PluginBase):
             news_txt = await self.get_news('netease_news', 10)
         elif "历史" in command:
             news_txt = await self.get_news('history')
-        elif "github" in command:
+        elif "github" in command.lower():
             news_txt = await self.get_news('github', desc=True)
         else:
             finish = False
