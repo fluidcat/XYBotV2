@@ -124,3 +124,4 @@ dmypy.json
 .pytype/
 cython_debug/
 /plugins/update_qr.py
+*.exe
