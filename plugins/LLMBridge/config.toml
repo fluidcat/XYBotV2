@@ -1,7 +1,8 @@
 [LLMBridge]
 enable = true
-commands = ["角色", "清除记忆", "清除所有", "更新配置"]
+commands = ["停止扮演", "角色", "role", "设定扮演", "角色类型", "清除记忆", "清除所有", "更新配置", "model", "openai"]
 # Http代理设置
 # 格式: http://用户名:密码@代理地址:代理端口
 # 例如：http://127.0.0.1:7890
 http-proxy = ""
+no_at_chat_room = ["45212824964@chatroom"]

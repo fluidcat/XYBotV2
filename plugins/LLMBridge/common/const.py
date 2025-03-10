@@ -97,7 +97,7 @@ MODEL_LIST = [
               "moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k",
               QWEN, QWEN_TURBO, QWEN_PLUS, QWEN_MAX,
               LINKAI_35, LINKAI_4_TURBO, LINKAI_4o,
-              DEEPSEEK_CHAT, DEEPSEEK_REASONER
+              DEEPSEEK_CHAT, DEEPSEEK_REASONER, "deepseek-v3", "deepseek-r1"
             ]
 
 MODEL_LIST = MODEL_LIST + GITEE_AI_MODEL_LIST
