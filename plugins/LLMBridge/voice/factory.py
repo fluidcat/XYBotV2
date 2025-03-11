@@ -10,11 +10,10 @@ def create_voice(voice_type):
     :return: voice instance
     """
     if voice_type == "baidu":
-        from plugins.LLMBridge.voice.voice import BaiduVoice
-
+        from plugins.LLMBridge.voice.baidu.baidu_voice import BaiduVoice
         return BaiduVoice()
     elif voice_type == "google":
-        from voice.google.google_voice import GoogleVoice
+        from plugins.LLMBridge.voice.google.google_voice import GoogleVoice
 
         return GoogleVoice()
     elif voice_type == "openai":
@@ -22,20 +21,20 @@ def create_voice(voice_type):
 
         return OpenaiVoice()
     elif voice_type == "pytts":
-        from voice.pytts.pytts_voice import PyttsVoice
+        from plugins.LLMBridge.voice.pytts.pytts_voice import PyttsVoice
 
         return PyttsVoice()
     elif voice_type == "azure":
-        from voice.azure.azure_voice import AzureVoice
+        from plugins.LLMBridge.voice.azure.azure_voice import AzureVoice
 
         return AzureVoice()
     elif voice_type == "elevenlabs":
-        from voice.elevent.elevent_voice import ElevenLabsVoice
+        from plugins.LLMBridge.voice.elevent.elevent_voice import ElevenLabsVoice
 
         return ElevenLabsVoice()
 
     elif voice_type == "linkai":
-        from plugins.LLMBridge.voice.voice import LinkAIVoice
+        from plugins.LLMBridge.voice.linkai.linkai_voice import LinkAIVoice
 
         return LinkAIVoice()
     elif voice_type == "ali":
@@ -43,11 +42,15 @@ def create_voice(voice_type):
 
         return AliVoice()
     elif voice_type == "edge":
-        from voice.edge.edge_voice import EdgeVoice
+        from plugins.LLMBridge.voice.edge.edge_voice import EdgeVoice
 
         return EdgeVoice()
     elif voice_type == "xunfei":
-        from voice.xunfei.xunfei_voice import XunfeiVoice
+        from plugins.LLMBridge.voice.xunfei.xunfei_voice import XunfeiVoice
 
         return XunfeiVoice()
+    elif voice_type == "tencent":
+        from plugins.LLMBridge.voice.tencent.tencent_voice import TencentVoice
+
+        return TencentVoice()
     raise RuntimeError

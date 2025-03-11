@@ -86,6 +86,10 @@ class Role:
         cmd_args = [] if len(cmd) == 1 else cmd[1].split()
         cmd = cmd[0]
 
+        # 特殊指令，LLMBridge的Bot内置的指令，当成聊天处理
+        if cmd in ['#清除记忆', '#清除所有', '#更新配置']:
+            return False
+
         chat_bot = Bridge().get_bot('chat')
 
         desckey = None

@@ -1,9 +1,16 @@
+import base64
+import io
 import tomllib
+import wave
+
+import filetype
+from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from plugins.LLMBridge.LLMBridge_config import load_config, conf
 from plugins.LLMBridge.bridge.bridge import Bridge
 from plugins.LLMBridge.bridge.context import Context, ContextType
+from plugins.LLMBridge.bridge.reply import ReplyType
 from plugins.LLMBridge.common.const import *
 from plugins.LLMBridge.role import Role
 from utils.decorators import *
@@ -44,7 +51,7 @@ class LLMBridge(PluginBase):
         """
         '#'开头的都是指令，若是指令则返回True，否则返回False
         """
-        command = message.get('command')
+        command = message.get('command', '')
         at_bot = message.get('at_bot', False)
         is_command = command.startswith('#')
 
@@ -192,12 +199,28 @@ class LLMBridge(PluginBase):
 
     @on_voice_message(priority=20)
     async def handle_voice(self, bot: WechatAPIClient, message: dict):
-        if not self.check(bot, message):
-            return
 
         if message["IsGroup"]:
             return
 
+        file = io.BytesIO(message['Content'])
+        result = self.bridge.fetch_voice_to_text(file)
+        if result.type != ReplyType.TEXT or not result.content:
+            return False
+
+        message['Content'] = result.content
+        message['Ats'] = []
+        message['command'] = result.content
+
+        # 处理角色扮演
+        await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
+
+        query = str(message["Content"]).strip()
+        context = Context(ContextType.TEXT, query)
+        context.kwargs = dict()
+        context["session_id"] = self.generateSessionId(bot, message)
+        reply = self.bridge.fetch_reply_content(query, context)
+        await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
         return False
 
     @on_image_message(priority=20)
