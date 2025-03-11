@@ -7,6 +7,7 @@ import pickle
 import copy
 
 from plugins.LLMBridge.common.log import logger
+from utils.config_util import loadConfig
 
 # 将所有可用的配置项写在字典里, 请使用小写字母
 # 此处的配置值无实际意义，程序不会读取此处的配置，仅用于提示格式，请将配置加入到config.json中
@@ -73,6 +74,8 @@ available_setting = {
     "baidu_wenxin_secret_key": "",  # Baidu secret key
     "baidu_wenxin_prompt_enabled": False,  # Enable prompt if you are using ernie character model
     # 讯飞星火API
+    "tencent_voice_secret_id": "",  # 腾讯语音id
+    "tencent_voice_secret_key": "",  # 腾讯语音key
     "xunfei_app_id": "",  # 讯飞应用ID
     "xunfei_api_key": "",  # 讯飞 API key
     "xunfei_api_secret": "",  # 讯飞 API secret
@@ -196,12 +199,14 @@ class Config(dict):
 
     def __getitem__(self, key):
         if key not in available_setting:
-            raise Exception("key {} not in available_setting".format(key))
+            return None
+            # raise Exception("key {} not in available_setting".format(key))
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
         if key not in available_setting:
-            raise Exception("key {} not in available_setting".format(key))
+            return
+            # raise Exception("key {} not in available_setting".format(key))
         return super().__setitem__(key, value)
 
     def get(self, key, default=None):

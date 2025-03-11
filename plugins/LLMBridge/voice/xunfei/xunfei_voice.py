@@ -24,13 +24,10 @@ import time
 from plugins.LLMBridge.bridge.reply import Reply, ReplyType
 from plugins.LLMBridge.common.log import logger
 from plugins.LLMBridge.common.tmp_dir import TmpDir
-from plugins.LLMBridge.LLMBridge_config import conf
 from plugins.LLMBridge.voice.voice import Voice
+from utils.config_util import env_config
 from .xunfei_asr import xunfei_asr
 from .xunfei_tts import xunfei_tts
-from plugins.LLMBridge.voice.audio_convert import any_to_mp3
-import shutil
-from pydub import AudioSegment
 
 
 class XunfeiVoice(Voice):
@@ -41,10 +38,10 @@ class XunfeiVoice(Voice):
             conf = None
             with open(config_path, "r") as fr:
                 conf = json.load(fr)
-            print(conf)
-            self.APPID = str(conf.get("APPID"))
-            self.APIKey = str(conf.get("APIKey"))
-            self.APISecret = str(conf.get("APISecret"))
+            conf = {k: v for k, v in conf.items() if v != ""}
+            self.APPID = str(conf.get("APPID", env_config.get('XUNFEI_APPID')))
+            self.APIKey = str(conf.get("APIKey", env_config.get('XUNFEI_APIKEY')))
+            self.APISecret = str(conf.get("APISecret", env_config.get('XUNFEI_APISECRET')))
             self.BusinessArgsTTS = conf.get("BusinessArgsTTS")
             self.BusinessArgsASR = conf.get("BusinessArgsASR")
 

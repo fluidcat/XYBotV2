@@ -8,8 +8,10 @@ from datetime import datetime
 import requests
 from loguru import logger
 
+from plugins.LLMBridge.LLMBridge_config import conf
 from plugins.LLMBridge.bridge.reply import Reply, ReplyType
 from plugins.LLMBridge.voice.voice import Voice
+from utils.config_util import env_config
 
 service = "asr"
 host = "asr.tencentcloudapi.com"
@@ -20,8 +22,8 @@ algorithm = "TC3-HMAC-SHA256"
 
 class TencentVoice(Voice):
     def __init__(self):
-        self.secret_id = ""
-        self.secret_key = ""
+        self.secret_id = conf().get('tencent_voice_secret_id', env_config.get('tencent_voice_secret_id'))
+        self.secret_key = conf().get('tencent_voice_secret_key', env_config.get('tencent_voice_secret_key'))
 
     def voiceToText(self, voice_file):
 
