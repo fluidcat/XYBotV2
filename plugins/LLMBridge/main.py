@@ -200,8 +200,8 @@ class LLMBridge(PluginBase):
     @on_voice_message(priority=20)
     async def handle_voice(self, bot: WechatAPIClient, message: dict):
 
-        if message["IsGroup"]:
-            return
+        # if message["IsGroup"]:
+        #     return
 
         file = io.BytesIO(message['Content'])
         result = self.bridge.fetch_voice_to_text(file)
