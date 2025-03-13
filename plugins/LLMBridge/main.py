@@ -1,10 +1,5 @@
-import base64
 import io
 import tomllib
-import wave
-
-import filetype
-from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from plugins.LLMBridge.LLMBridge_config import load_config, conf
@@ -88,7 +83,7 @@ class LLMBridge(PluginBase):
         bridge_conf = conf()
 
         all_platform = bridge_conf.get("open_ai_compatible")
-        help_txt = [f"{key} - {value['desc']}" for key, value in all_platform.items()]
+        help_txt = [f"{key} - {value['desc']}" for key, value in all_platform.items() if key != 'remark']
         help_txt = "\n\n可用平台：\n" + "\n".join(help_txt)
         if not cmd_args:
             base = bridge_conf.get("open_ai_api_base")
@@ -220,6 +215,9 @@ class LLMBridge(PluginBase):
         context.kwargs = dict()
         context["session_id"] = self.generateSessionId(bot, message)
         reply = self.bridge.fetch_reply_content(query, context)
+
+        # re = self.bridge.fetch_text_to_voice(reply.content)
+        # await bot.send_voice_message(message['FromWxid'], Path(re.content), filetype.guess_extension(re.content))
         await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
         return False
 

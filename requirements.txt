@@ -22,14 +22,14 @@ pillow~=10.4.0
 pydantic~=2.10.5
 aiosqlite~=0.20.0
 
-dynaconf
+dynaconf~=3.2.10
 openai==0.27.8
 linkai>=0.0.6.0
 broadscope_bailian
 # claude bot
 curl_cffi
 # claude API
-anthropic
+anthropic~=0.49.0
 # tongyi qwen
 broadscope_bailian
 # xunfei spark
@@ -37,7 +37,9 @@ websocket-client==1.2.0
 # zhipuai
 zhipuai>=2.0.1
 # tongyi qwen new sdk
-dashscope
+dashscope~=1.22.1
 # google
 google-generativeai
 tiktoken>=0.3.2 # openai calculate token
+cachetools~=5.5.2
+pyttsx3~=2.98

@@ -8,10 +8,10 @@ import time
 
 import pyttsx3
 
-from bridge.reply import Reply, ReplyType
-from common.log import logger
-from common.tmp_dir import TmpDir
-from voice.voice import Voice
+from plugins.LLMBridge.bridge.reply import Reply, ReplyType
+from plugins.LLMBridge.common.log import logger
+from plugins.LLMBridge.common.tmp_dir import TmpDir
+from plugins.LLMBridge.voice.voice import Voice
 
 
 class PyttsVoice(Voice):
@@ -19,12 +19,12 @@ class PyttsVoice(Voice):
 
     def __init__(self):
         # 语速
-        self.engine.setProperty("rate", 125)
+        self.engine.setProperty("rate", 160)
         # 音量
         self.engine.setProperty("volume", 1.0)
         if sys.platform == "win32":
             for voice in self.engine.getProperty("voices"):
-                if "Chinese" in voice.name:
+                if "Chinese" in voice.name and 'Traditional' not in voice.name:
                     self.engine.setProperty("voice", voice.id)
         else:
             self.engine.setProperty("voice", "zh")
