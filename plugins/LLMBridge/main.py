@@ -83,7 +83,8 @@ class LLMBridge(PluginBase):
         bridge_conf = conf()
 
         all_platform = bridge_conf.get("open_ai_compatible")
-        help_txt = [f"{key} - {value['desc']}" for key, value in all_platform.items() if key != 'remark']
+        del all_platform['remark']
+        help_txt = [f"{key} - {value['desc']}" for key, value in all_platform.items()]
         help_txt = "\n\n可用平台：\n" + "\n".join(help_txt)
         if not cmd_args:
             base = bridge_conf.get("open_ai_api_base")

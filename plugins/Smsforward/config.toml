@@ -1,0 +1,6 @@
+[Smsforward]
+# 是否启用插件
+enable = true
+open_ai_compatible = 'wwxq'
+# 若LLMBridge中，使用的平台和model使用的平台一样，则model使用LLMBridge的模型
+model = 'deepseek-v3'

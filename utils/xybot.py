@@ -30,7 +30,6 @@ class XYBot:
 
         self.msg_db = MessageDB()
 
-
     def update_profile(self, wxid: str, nickname: str, alias: str, phone: str):
         """更新机器人信息"""
         self.wxid = wxid
@@ -52,7 +51,6 @@ class XYBot:
         if message["FromWxid"] == self.wxid and message["ToWxid"].endswith("@chatroom"):  # 自己发发到群聊
             # 由于是自己发送的消息，所以对于自己来说，From和To是反的
             message["FromWxid"], message["ToWxid"] = message["ToWxid"], message["FromWxid"]
-
 
         # 根据消息类型触发不同的事件
         if msg_type == 1:  # 文本消息
@@ -314,6 +312,8 @@ class XYBot:
 
         if type == 57:
             await self.process_quote_message(message)
+        elif type == 5:
+            await self.process_link_share_message(message) # 链接分享消息
         elif type == 6:
             await self.process_file_message(message)
         elif type == 74:  # 文件消息，但还在上传，不用管
@@ -582,6 +582,34 @@ class XYBot:
         if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
             if self.ignore_protection or not protector.check(14400):
                 await EventManager.emit("pat_message", self.bot, message)
+            else:
+                logger.warning("风控保护: 新设备登录后4小时内请挂机")
+
+    async def process_link_share_message(self, message: Dict[str, Any]):
+        """处理链接分享消息"""
+        try:
+            root = ET.fromstring(message["Content"])
+            title = root.find("appmsg").find("title").text
+            url = root.find("appmsg").find("url").text
+        except Exception as error:
+            logger.error(f"解析链接分享消息失败: {error}")
+            return
+        # 特定信息
+        # if '#crMLiYEl587G#' not in des:
+        #     return
+        message["url"] = url
+        message["title"] = title
+
+        logger.info("收到链接分享消息: 消息ID:{} 来自:{} 发送人:{} title:{} url:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    title,
+                    url)
+
+        if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
+            if self.ignore_protection or not protector.check(14400):
+                await EventManager.emit("link_share_message", self.bot, message)
             else:
                 logger.warning("风控保护: 新设备登录后4小时内请挂机")
 

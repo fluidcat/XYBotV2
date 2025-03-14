@@ -24,36 +24,9 @@ class Bridge(object):
             self.btype["chat"] = bot_type
         else:
             model_type = conf().get("model") or const.GPT35
-            if model_type in ["text-davinci-003"]:
-                self.btype["chat"] = const.OPEN_AI
-            if conf().get("use_azure_chatgpt", False):
-                self.btype["chat"] = const.CHATGPTONAZURE
-            if model_type in ["wenxin", "wenxin-4"]:
-                self.btype["chat"] = const.BAIDU
-            if model_type in ["xunfei"]:
-                self.btype["chat"] = const.XUNFEI
-            if model_type in [const.QWEN]:
-                self.btype["chat"] = const.QWEN
-            if model_type in [const.QWEN_TURBO, const.QWEN_PLUS, const.QWEN_MAX]:
-                self.btype["chat"] = const.QWEN_DASHSCOPE
-            if model_type and model_type.startswith("gemini"):
-                self.btype["chat"] = const.GEMINI
-            if model_type and model_type.startswith("glm"):
-                self.btype["chat"] = const.ZHIPU_AI
-            if model_type and model_type.startswith("claude-3"):
-                self.btype["chat"] = const.CLAUDEAPI
-
-            if model_type in ["claude"]:
-                self.btype["chat"] = const.CLAUDEAI
-
-            if model_type in [const.MOONSHOT, "moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]:
-                self.btype["chat"] = const.MOONSHOT
-
-            if model_type in ["abab6.5-chat"]:
-                self.btype["chat"] = const.MiniMax
+            self.btype["chat"] = self.infer_bot_type(model_type)
 
             if conf().get("use_linkai") and conf().get("linkai_api_key"):
-                self.btype["chat"] = const.LINKAI
                 if not conf().get("voice_to_text") or conf().get("voice_to_text") in ["openai"]:
                     self.btype["voice_to_text"] = const.LINKAI
                 if not conf().get("text_to_voice") or conf().get("text_to_voice") in ["openai", const.TTS_1, const.TTS_1_HD]:
@@ -61,6 +34,41 @@ class Bridge(object):
 
         self.bots = {}
         self.chat_bots = {}
+
+    def infer_bot_type(self, model_type):
+        bot_type = const.CHATGPT
+        if model_type in ["text-davinci-003"]:
+            bot_type = const.OPEN_AI
+        if conf().get("use_azure_chatgpt", False):
+            bot_type = const.CHATGPTONAZURE
+        if model_type in ["wenxin", "wenxin-4"]:
+            bot_type = const.BAIDU
+        if model_type in ["xunfei"]:
+            bot_type = const.XUNFEI
+        if model_type in [const.QWEN]:
+            bot_type = const.QWEN
+        if model_type in [const.QWEN_TURBO, const.QWEN_PLUS, const.QWEN_MAX]:
+            bot_type = const.QWEN_DASHSCOPE
+        if model_type and model_type.startswith("gemini"):
+            bot_type = const.GEMINI
+        if model_type and model_type.startswith("glm"):
+            bot_type = const.ZHIPU_AI
+        if model_type and model_type.startswith("claude-3"):
+            bot_type = const.CLAUDEAPI
+
+        if model_type in ["claude"]:
+            bot_type = const.CLAUDEAI
+
+        if model_type in [const.MOONSHOT, "moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]:
+            bot_type = const.MOONSHOT
+
+        if model_type in ["abab6.5-chat"]:
+            bot_type = const.MiniMax
+
+        if conf().get("use_linkai") and conf().get("linkai_api_key"):
+            bot_type = const.LINKAI
+
+        return bot_type
 
     # 模型对应的接口
     def get_bot(self, typename):

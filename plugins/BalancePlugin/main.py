@@ -103,20 +103,4 @@ class BalancePlugin(PluginBase):
             return
         logger.info("收到了表情消息")
 
-    @schedule('interval', seconds=5)
-    async def periodic_task(self, bot: WechatAPIClient):
-        if not self.enable:
-            return
-        logger.info("我每5秒执行一次")
 
-    @schedule('cron', hour=8, minute=30, second=30)
-    async def daily_task(self, bot: WechatAPIClient):
-        if not self.enable:
-            return
-        logger.info("我每天早上8点30分30秒执行")
-
-    @schedule('date', run_date='2025-01-29 00:00:00')
-    async def new_year_task(self, bot: WechatAPIClient):
-        if not self.enable:
-            return
-        logger.info("我在2025年1月29日执行")
