@@ -35,8 +35,8 @@ ignore-mode = "Whitelist"
 
 whitelist = [# 白名单列表
     "ghost15816527125", # 个人用户微信ID
-    "wxid_j44mhyp73ubp21",
-    "45212824964@chatroom", # 群聊ID
+    "wxid_j44mhyp73ubp21", # 主号
+    "wxid_bew1a7xb9tmb22", # 副号4
     "gh_8ec531665608" # pushplush公众号
 ]
 

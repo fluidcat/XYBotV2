@@ -7,7 +7,7 @@ from utils.decorators import *
 from utils.plugin_base import PluginBase
 
 
-class StopService(PluginBase):
+class AdminTool(PluginBase):
     description = "停止服务插件"
     author = "fluidcat"
     version = "1.0.0"
@@ -18,18 +18,12 @@ class StopService(PluginBase):
 
         # 获取配置文件路径
         config_path = os.path.join(os.path.dirname(__file__), "config.toml")
-        
-        try:
-            with open(config_path, "rb") as f:
-                config = tomllib.load(f)
-                
-            # 读取基本配置
-            basic_config = config.get("basic", {})
-            self.enable = basic_config.get("enable", False)  # 读取插件开关
+        config = self.loadConfig(config_path).get("admintool", {})
+        # 读取基本配置
+        self.enable = config.get("enable", False)  # 读取插件开关
 
-        except Exception as e:
-            logger.error(f"加载ExamplePlugin配置文件失败: {str(e)}")
-            self.enable = False  # 如果加载失败，禁用插件
+        sys_config = self.loadConfig("main_config.toml").get('XYBot')
+
 
     # 异步初始化
     async def async_init(self):
@@ -42,7 +36,7 @@ class StopService(PluginBase):
             return
         bot.stop_sync_message = True
         logger.info("xybot 已经停止处理消息")
-        await bot.send_reply_message(message, "我已经已经停止处理消息")
+        await bot.send_reply_message(message, "我已经停止处理消息")
         return False
 
     @on_at_message(priority=50)
