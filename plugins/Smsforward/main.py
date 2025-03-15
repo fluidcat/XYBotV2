@@ -5,7 +5,7 @@ import requests
 from loguru import logger
 
 from WechatAPI import WechatAPIClient
-from plugins.LLMBridge.LLMBridge_config import conf
+from plugins.LLMBridge.LLMBridge_config import conf, load_config
 from plugins.LLMBridge.bot.bot_factory import create_bot
 from plugins.LLMBridge.bridge.bridge import Bridge
 from plugins.LLMBridge.bridge.context import Context, ContextType
@@ -30,9 +30,11 @@ class Smsforward(PluginBase):
 
         # 读取基本配置
         self.enable = config.get("enable", False)  # 读取插件开关
+        self.link_icon = config.get("link_icon", '')
+        self.send_to = config.get("send_to", '')
 
-        bridge_conf = conf()
-        open_ai_config = bridge_conf.get("open_ai_compatible").get(config.get('open_ai_compatible', 'wwxq'))
+        load_config()
+        open_ai_config = conf().get("open_ai_compatible").get(config.get('open_ai_compatible', 'wwxq'))
 
         self.api_key = open_ai_config.get('open_ai_api_key')
         self.api_base = open_ai_config.get('open_ai_api_base')
@@ -72,7 +74,8 @@ class Smsforward(PluginBase):
         context["gpt_model"] = self.model
         reply = self.ai_bot.reply(sms, context)
 
-        await bot.send_text_message('wxid_j44mhyp73ubp21', reply.content)
+        await bot.send_link_message(self.send_to, url, reply.content, sms.strip('#!#'), self.link_icon)
+        # await bot.send_text_message(self.send_to, reply.content)
 
         return PLUGIN_ENDED
 

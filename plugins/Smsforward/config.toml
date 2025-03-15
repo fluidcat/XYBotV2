@@ -4,3 +4,5 @@ enable = true
 open_ai_compatible = 'wwxq'
 # 若LLMBridge中，使用的平台和model使用的平台一样，则model使用LLMBridge的模型
 model = 'deepseek-v3'
+send_to = 'wxid_j44mhyp73ubp21'
+link_icon = 'https://wx.qlogo.cn/mmhead/ver_1/CQ40zzEK9UicT6m2dvaJMtymXLgnoRv8f4uXf78fcMa12KwFAnjjcZUdfshL4l0ibj12CekuUE8wOialmCxPtLtqLwOabuvLQfcEaRtA5ZlyQGZS31Seggz6Exc3TPoNRca/0'
