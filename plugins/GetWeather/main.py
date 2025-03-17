@@ -134,8 +134,8 @@ class GetWeather(PluginBase):
         message = (
             f"☁️{country}{adm1}{adm2} 实时天气☁️\n"
             f"⏰更新时间：{update_time}\n\n"
-            f"🌡️ {'当前温度： ':　<{max_len}}　{now_temperature}℃\n"
-            f"🌡️ {'体感温度： ':　<{max_len}}　{now_feelslike}℃\n"
+            f"🌡️{'当前温度：':　<{max_len}}{now_temperature}℃\n"
+            f"🌡️{'体感温度：':　<{max_len}}{now_feelslike}℃\n"
             f"☁️{'天气：':　<{max_len}}{now_weather}\n"
             f"☀️{'紫外线指数：':　<{max_len}}{now_uvindex}\n"
             f"🌬️{'风向：':　<{max_len}}{now_wind_direction}\n"
