@@ -1,3 +1,4 @@
+import re
 import tomllib
 
 import aiohttp
@@ -33,13 +34,13 @@ class Music(PluginBase):
 
         content = str(message["Content"]).strip()
         command = content.split(" ")
+        message['reply_ats'] = [message["SenderWxid"]] if message['IsGroup'] else []
 
         if command[0] not in self.command:
             return PLUGIN_PASS
 
         if len(command) == 1:
-            await bot.send_at_message(message["FromWxid"], f"❌命令格式错误！{self.command_format}",
-                                      [message["SenderWxid"]])
+            await bot.send_reply_message(message, f"{self.command_format}")
             return PLUGIN_ENDED
 
         song_name = content[len(command[0]):].strip()
@@ -47,8 +48,7 @@ class Music(PluginBase):
         data = await self.get_music_guigui(song_name)
 
         if data["code"] != 200:
-            await bot.send_at_message(message["FromWxid"], f"❌点歌失败！\n{data}",
-                                      [message["SenderWxid"]])
+            await bot.send_reply_message(message, f"❌点歌失败！\n{data}")
             return PLUGIN_ENDED
 
         title = data["title"]
@@ -79,6 +79,8 @@ class Music(PluginBase):
         return data
 
     async def get_music_guigui(self, song_name):
+        match = re.search(r'\d+$', song_name)
+        song_name, index = (song_name[:match.start()].strip(), int(match.group())-1) if match else (song_name, 0)
         music = {"code": 0}
         header = {
             "accept": '*/*',
@@ -100,7 +102,7 @@ class Music(PluginBase):
         if list_resp.get('code', 0) != 200 or not list_resp.get('data', []):
             return music
 
-        song = list_resp.get('data')[0]
+        song = list_resp.get('data')[index if len(list_resp.get('data')) > index else -1]
         # 获取歌曲url
 
         url = requests.get(f"https://cenguigui.cn/api/api.php?kw=&rid={song.get('rid', 0)}", headers=header).text

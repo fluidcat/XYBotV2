@@ -312,8 +312,8 @@ class XYBot:
 
         if type == 57:
             await self.process_quote_message(message)
-        elif type == 5:
-            await self.process_link_share_message(message) # 链接分享消息
+        elif type in [3, 4, 5]:  # 链接分享消息，3-音乐，4，视频，5-普通链接， 33-小程序 19-聊天记录
+            await self.process_link_share_message(message)
         elif type == 6:
             await self.process_file_message(message)
         elif type == 74:  # 文件消息，但还在上传，不用管
@@ -591,6 +591,7 @@ class XYBot:
             root = ET.fromstring(message["Content"])
             title = root.find("appmsg").find("title").text
             url = root.find("appmsg").find("url").text
+            appmsg_type = root.find("appmsg").find("type").text
         except Exception as error:
             logger.error(f"解析链接分享消息失败: {error}")
             return
@@ -600,10 +601,11 @@ class XYBot:
         message["url"] = url
         message["title"] = title
 
-        logger.info("收到链接分享消息: 消息ID:{} 来自:{} 发送人:{} title:{} url:{}",
+        logger.info("收到链接分享消息: 消息ID:{} 来自:{} 发送人:{} appmsg_type:{} title:{} url:{}",
                     message["MsgId"],
                     message["FromWxid"],
                     message["SenderWxid"],
+                    appmsg_type,
                     title,
                     url)
 
