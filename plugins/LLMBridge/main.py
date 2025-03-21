@@ -51,12 +51,12 @@ class LLMBridge(PluginBase):
         is_command = command.startswith('#')
 
         # 特殊指令，LLMBridge的Bot内置的指令，当成聊天处理
-        if command in ['#清除记忆', '#清除所有', '#更新配置']:
+        if not is_command or command in ['#清除记忆', '#清除所有', '#更新配置']:
             return False
 
         # 判断是否自身命令
-        if command.split(maxsplit=1)[0].removeprefix('#') not in self.commands:
-            return is_command
+        # if command.split(maxsplit=1)[0].removeprefix('#') not in self.commands:
+        #     return is_command
 
         if message["IsGroup"]:
             message['reply_ats'] = [message["SenderWxid"]]
@@ -83,7 +83,7 @@ class LLMBridge(PluginBase):
         bridge_conf = conf()
 
         all_platform = bridge_conf.get("open_ai_compatible")
-        del all_platform['remark']
+        all_platform.pop('remark', None)
         help_txt = [f"{key} - {value['desc']}" for key, value in all_platform.items()]
         help_txt = "\n\n可用平台：\n" + "\n".join(help_txt)
         if not cmd_args:
@@ -134,8 +134,13 @@ class LLMBridge(PluginBase):
         return model
 
     async def handle_role_play_command(self, bot: WechatAPIClient, message: dict):
-        cmd = message.get('command').split(maxsplit=1)
-        is_role_cmd = cmd[0] in ['#停止扮演', '#角色', '#role', '#设定扮演', '#角色类型']
+        cmd = message.get('command').split(maxsplit=1)[0]
+        is_role_cmd = cmd in ['#停止扮演', '#角色', '#role', '#设定扮演', '#角色类型']
+        if not is_role_cmd and len(cmd) < 11:
+            sim_role = cmd.removeprefix('#')
+            is_role_cmd = bool(self.role.get_role(sim_role, min_sim=0.5))
+            message['command'] = f"#角色 {sim_role}" if is_role_cmd else message['command']
+
         if is_role_cmd:
             await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
         return is_role_cmd

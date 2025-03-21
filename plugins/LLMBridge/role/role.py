@@ -135,7 +135,7 @@ class Role:
             return
 
         content = message['Content']
-        logger.debug("[Role] on_handle_context. content: %s" % content)
+        # logger.debug("[Role] on_handle_context. content: %s" % content)
         if desckey is not None:
             if not cmd_args or cmd_args[0].lower() in ["help", "帮助"]:
                 await channel.send_reply_message(message, self.get_help_text(verbose=True))
@@ -151,7 +151,7 @@ class Role:
                     self.roles[role][desckey],
                     self.roles[role].get("wrapper", "%s"),
                 )
-                await channel.send_reply_message(message, f"预设角色为 {role}:\n" + self.roles[role][desckey])
+                await channel.send_reply_message(message, f"设置角色：{role}\n\n{self.roles[role][desckey]}\n\n停止可发送：#停止扮演")
         elif customize == True:
             self.roleplays[session_id] = RolePlay(chat_bot, session_id, cmd_args[0], "%s")
             await channel.send_reply_message(message, f"角色设定为:\n{cmd_args[0]}")
