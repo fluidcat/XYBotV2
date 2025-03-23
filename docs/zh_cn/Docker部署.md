@@ -58,7 +58,13 @@ docker-compose restart xybotv2
 
 6. 🔄 访问Web界面
 
-应用现在使用gunicorn和eventlet运行，Web界面可通过以下地址访问：
+Web界面可通过以下地址访问：
+
+```
+http://服务器IP地址:9999
+```
+
+Web界面可通过以下地址访问：
 
 ```
 http://服务器IP地址:9999

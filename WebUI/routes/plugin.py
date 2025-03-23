@@ -80,19 +80,27 @@ def enable_plugin(plugin_name: str):
     返回:
         JSON: 操作结果
     """
-    import asyncio
-    result = asyncio.run(plugin_service.enable_plugin(plugin_name))
-
-    if result:
-        return jsonify({
-            "code": 0,
-            "msg": "插件启用成功",
-            "data": None
-        })
-    else:
+    try:
+        # 使用run_async执行异步操作，而不是直接用asyncio.run
+        result = plugin_service.run_async(plugin_service.enable_plugin(plugin_name))
+        
+        if result:
+            return jsonify({
+                "code": 0,
+                "msg": "插件启用成功",
+                "data": None
+            })
+        else:
+            return jsonify({
+                "code": 500,
+                "msg": "插件启用失败",
+                "data": None
+            })
+    except Exception as e:
+        logger.log("WEBUI", f"启用插件失败: {str(e)}")
         return jsonify({
             "code": 500,
-            "msg": "插件启用失败",
+            "msg": f"启用插件失败: {str(e)}",
             "data": None
         })
 
@@ -109,19 +117,27 @@ def disable_plugin(plugin_name: str):
     返回:
         JSON: 操作结果
     """
-    import asyncio
-    result = asyncio.run(plugin_service.disable_plugin(plugin_name))
-
-    if result:
-        return jsonify({
-            "code": 0,
-            "msg": "插件禁用成功",
-            "data": None
-        })
-    else:
+    try:
+        # 使用run_async执行异步操作
+        result = plugin_service.run_async(plugin_service.disable_plugin(plugin_name))
+        
+        if result:
+            return jsonify({
+                "code": 0,
+                "msg": "插件禁用成功",
+                "data": None
+            })
+        else:
+            return jsonify({
+                "code": 500,
+                "msg": "插件禁用失败",
+                "data": None
+            })
+    except Exception as e:
+        logger.log("WEBUI", f"禁用插件失败: {str(e)}")
         return jsonify({
             "code": 500,
-            "msg": "插件禁用失败",
+            "msg": f"禁用插件失败: {str(e)}",
             "data": None
         })
 
@@ -138,19 +154,27 @@ def reload_plugin(plugin_name: str):
     返回:
         JSON: 操作结果
     """
-    import asyncio
-    result = asyncio.run(plugin_service.reload_plugin(plugin_name))
-
-    if result:
-        return jsonify({
-            "code": 0,
-            "msg": "插件重新加载成功",
-            "data": None
-        })
-    else:
+    try:
+        # 使用run_async执行异步操作
+        result = plugin_service.run_async(plugin_service.reload_plugin(plugin_name))
+        
+        if result:
+            return jsonify({
+                "code": 0,
+                "msg": "插件重新加载成功",
+                "data": None
+            })
+        else:
+            return jsonify({
+                "code": 500,
+                "msg": "插件重新加载失败",
+                "data": None
+            })
+    except Exception as e:
+        logger.log("WEBUI", f"重载插件失败: {str(e)}")
         return jsonify({
             "code": 500,
-            "msg": "插件重新加载失败",
+            "msg": f"重载插件失败: {str(e)}",
             "data": None
         })
 
@@ -200,15 +224,27 @@ def save_plugin_config(plugin_name: str):
 
     if result:
         # 重载插件以应用新配置
-        import asyncio
-        logger.info(f"正在重载插件 {plugin_name} 以应用新配置...")
-        asyncio.run(plugin_service.reload_plugin(plugin_name))
-
-        return jsonify({
-            "code": 0,
-            "msg": "配置保存成功",
-            "data": None
-        })
+        try:
+            logger.info(f"正在重载插件 {plugin_name} 以应用新配置...")
+            reload_result = plugin_service.run_async(plugin_service.reload_plugin(plugin_name))
+            
+            if reload_result:
+                logger.info(f"插件 {plugin_name} 重载成功")
+            else:
+                logger.warning(f"插件 {plugin_name} 重载失败")
+                
+            return jsonify({
+                "code": 0,
+                "msg": "配置保存成功",
+                "data": None
+            })
+        except Exception as e:
+            logger.error(f"插件重载失败: {str(e)}")
+            return jsonify({
+                "code": 0,
+                "msg": "配置已保存，但插件重载失败",
+                "data": None
+            })
     else:
         return jsonify({
             "code": 500,

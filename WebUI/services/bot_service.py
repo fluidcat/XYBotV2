@@ -27,6 +27,11 @@ def get_or_create_eventloop() -> asyncio.AbstractEventLoop:
     try:
         # 尝试获取当前线程的事件循环
         loop = asyncio.get_event_loop()
+        # 检查事件循环是否已关闭，已关闭则创建新循环
+        if loop.is_closed():
+            logger.log('WEBUI', f"检测到线程 {threading.current_thread().name} 的事件循环已关闭，创建新循环")
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
     except RuntimeError:
         # 如果当前线程没有事件循环，则创建一个新的
         loop = asyncio.new_event_loop()
@@ -45,6 +50,7 @@ class BotService(metaclass=Singleton):
         self._task: Optional[Union[asyncio.Task, asyncio.Future]] = None
         self._start_time: float = 0
         self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._bot_thread: Optional[threading.Thread] = None
         logger.log('WEBUI', "机器人服务初始化完成")
 
     def start_bot(self) -> bool:
@@ -74,7 +80,7 @@ class BotService(metaclass=Singleton):
                 future = asyncio.run_coroutine_threadsafe(run_bot(), loop)
                 self._task = future
             else:
-                # 如果循环未运行，使用create_task
+                # 如果循环未运行，在新线程中运行事件循环
                 logger.log('WEBUI', "创建新的事件循环来启动机器人")
                 self._task = loop.create_task(run_bot())
 
@@ -88,11 +94,10 @@ class BotService(metaclass=Singleton):
                         logger.log('WEBUI', traceback.format_exc())
                     finally:
                         logger.log('WEBUI', "事件循环已关闭")
-                        loop.close()
 
-                thread = threading.Thread(target=run_loop, daemon=True)
-                thread.start()
-                logger.log('WEBUI', f"已在后台线程启动事件循环 (线程ID: {thread.ident})")
+                self._bot_thread = threading.Thread(target=run_loop, daemon=True)
+                self._bot_thread.start()
+                logger.log('WEBUI', f"已在后台线程启动事件循环 (线程ID: {self._bot_thread.ident})")
 
             self._start_time = time.time()
             bot_bridge.start_time = self._start_time
@@ -131,15 +136,16 @@ class BotService(metaclass=Singleton):
                     self._task.cancel()
 
             # 停止事件循环
-            if self._loop and self._loop.is_running():
+            if self._loop and not self._loop.is_closed() and self._loop.is_running():
                 logger.log('WEBUI', "停止事件循环")
                 self._loop.call_soon_threadsafe(self._loop.stop)
 
             # 重置状态
             self._task = None
             self._start_time = 0
-            bot_bridge.start_time = 0
+            self._bot_thread = None 
             self._loop = None
+            bot_bridge.start_time = 0
             bot_bridge.is_running = False
             logger.log('WEBUI', "机器人已成功停止")
 
@@ -170,6 +176,8 @@ class BotService(metaclass=Singleton):
             logger.log('WEBUI', "检测到机器人任务已完成或出错，重置状态")
             self._task = None
             self._start_time = 0
+            self._loop = None
+            self._bot_thread = None
             bot_bridge.start_time = 0
             bot_bridge.is_running = False
 

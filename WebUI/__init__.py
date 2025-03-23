@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple, Any, Union
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager
 from flask_session import Session
+from flask_socketio import SocketIO
 from loguru import logger
 
 
@@ -60,8 +61,8 @@ def _setup_instance_directories(app: Flask) -> None:
         logger.log('WEBUI', f"创建实例目录失败: {e}")
 
 
-def create_app(test_config: Optional[Dict[str, Any]] = None) -> Tuple[Flask, Any]:
-    """创建并配置Flask应用实例
+def create_app(test_config: Optional[Dict[str, Any]] = None) -> Tuple[Flask, SocketIO]:
+    """创建并配置Flask应用实例及SocketIO实例
     
     Args:
         test_config: 可选的测试配置字典，用于测试环境
@@ -124,9 +125,23 @@ def create_app(test_config: Optional[Dict[str, Any]] = None) -> Tuple[Flask, Any
     logger.log('WEBUI', "已注册路由蓝图")
 
     # 初始化WebSocket服务
-    from .services.websocket_service import init_websocket
-    socketio = init_websocket(app)
-    logger.log('WEBUI', "已初始化WebSocket服务")
+    from .services.websocket_service import socketio, init_websocket
+
+    # 配置socketio
+    socketio_config = {
+        'cors_allowed_origins': '*',  # 允许的跨域来源，生产环境应该更严格
+        'async_mode': 'eventlet',  # 使用eventlet作为异步模式
+        'logger': False,  # 禁用socketio日志
+        'engineio_logger': False  # 禁用engineio日志
+    }
+
+    # 初始化socketio
+    socketio.init_app(app, **socketio_config)
+    logger.log('WEBUI', "已初始化SocketIO服务")
+
+    # 启动WebSocket服务
+    init_websocket()
+    logger.log('WEBUI', "已启动WebSocket日志监控")
 
     # 注册全局上下文处理器
     @app.context_processor

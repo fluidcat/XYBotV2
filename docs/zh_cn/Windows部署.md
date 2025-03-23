@@ -67,64 +67,31 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
 # 确保Redis服务已启动
 redis-cli ping  # 如果返回PONG则表示Redis正常运行
 
-# 启动机器人 (新方式 - 使用gunicorn和eventlet)
-python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
+# 启动WebUI
+python app.py
 ```
 
-## 4. 📱 登录微信
+5. 进入WebUI
 
-- 扫描终端显示的二维码完成登录。如果扫不出来,可以打开二维码下面的链接扫码。
-- 首次登录成功后,需要挂机4小时。之后机器人就会开始正常运行。
+访问 `9999` 端口。
 
-## 5. ⚙️ 配置文件修改
+默认用户名是`admin`，密码是`admin123`
 
-主配置: main_config.toml 主配置文件
-
-插件配置: plugins/all_in_one_config.toml 插件配置文件
-
-这几个插件需要配置API密钥才可正常工作:
-
-- 🤖 Ai
-- 🌤️ GetWeather
+6. 点击`启动`，账号信息出会出现一个二维码，微信扫码即可。
 
 
-- 如果机器人正在运行，需要重启才能使主配置生效：
-    ```bash
-    # 按Ctrl+C停止机器人
-    # 重新启动
-    python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
-    ```
+7. 💻 不需要WebUI的简单启动方式
 
-## 6. 🔄 创建Windows服务（可选）
+如果你不需要WebUI界面，可以直接使用bot.py来运行机器人：
 
-为了让机器人在后台运行并开机自启，可以创建Windows服务：
+```bash
+# 直接运行bot.py
+python bot.py
+```
 
-1. 安装NSSM（Non-Sucking Service Manager）:
-   - 从 [NSSM官网](https://nssm.cc/download) 下载最新版本
-   - 解压到合适的目录
-
-2. 创建服务:
-   ```bash
-   # 打开管理员权限的命令提示符
-   cd C:\path\to\nssm\win64
-   
-   # 创建服务
-   nssm install XYBotV2
-   ```
-
-3. 在弹出的NSSM配置窗口中:
-   - Path: `C:\XYBotV2\venv\Scripts\python.exe`
-   - Startup directory: `C:\XYBotV2`
-   - Arguments: `-m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999`
-   - 在Details标签中设置服务名称和描述
-   - 点击"Install service"安装服务
-
-4. 启动服务:
-   ```bash
-   nssm start XYBotV2
-   ```
-
-> 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
+这种方式不会启动Web界面，机器人核心功能依然正常工作。使用这种方式时：
+- 二维码会直接显示在终端中
+- 所有机器人功能正常可用
 
 ## ❓ 常见问题
 
@@ -145,23 +112,3 @@ python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
   1. 打开"控制面板" -> "Windows Defender防火墙" -> "高级设置"
   2. 选择"入站规则" -> "新建规则"
   3. 规则类型选"端口" -> 指定TCP和9999端口 -> 允许连接 -> 给规则起名并完成
-
-## 6. 💻 不需要WebUI的简单启动方式
-
-如果你不需要WebUI界面，可以直接使用bot.py来运行机器人：
-
-```bash
-# 确保在虚拟环境中
-.\venv\Scripts\activate
-
-# 直接运行bot.py
-python bot.py
-```
-
-这种方式不会启动Web界面，机器人核心功能依然正常工作。使用这种方式时：
-- 二维码会直接显示在终端中，可直接扫码登录
-- 所有机器人功能正常可用
-- 但没有Web管理界面，所有操作需通过聊天命令完成
-
-> [!TIP]
-> 如果只是想简单使用机器人功能，这是最轻量级的运行方式。
