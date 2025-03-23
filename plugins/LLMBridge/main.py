@@ -1,5 +1,9 @@
 import io
 import tomllib
+from pathlib import Path
+
+import filetype
+import requests
 
 from WechatAPI import WechatAPIClient
 from plugins.LLMBridge.LLMBridge_config import load_config, conf
@@ -222,9 +226,12 @@ class LLMBridge(PluginBase):
         context["session_id"] = self.generateSessionId(bot, message)
         reply = self.bridge.fetch_reply_content(query, context)
 
-        # re = self.bridge.fetch_text_to_voice(reply.content)
-        # await bot.send_voice_message(message['FromWxid'], Path(re.content), filetype.guess_extension(re.content))
-        await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
+        voice_reply = self.bridge.fetch_text_to_voice(reply.content)
+        if voice_reply.type != ReplyType.ERROR and len(voice_reply.content) <= 130:
+            voice = voice_reply.content if isinstance(voice_reply.content, bytes) else Path(voice_reply.content)
+            await bot.send_voice_message(message['FromWxid'], voice, filetype.guess_extension(voice))
+        else:
+            await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
         return False
 
     @on_image_message(priority=20)

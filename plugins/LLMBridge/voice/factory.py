@@ -53,4 +53,8 @@ def create_voice(voice_type):
         from plugins.LLMBridge.voice.tencent.tencent_voice import TencentVoice
 
         return TencentVoice()
+    elif voice_type == "cn109a":
+        from plugins.LLMBridge.voice.cn109a.cn109a_voice import Cn109aVoice
+
+        return Cn109aVoice()
     raise RuntimeError
