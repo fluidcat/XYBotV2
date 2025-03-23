@@ -1,0 +1,107 @@
+{% macro file_viewer(file_path, container_id='file-viewer') %}
+<link href="{{ url_for('static', filename='css/components/file_viewer.css') }}" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@4.5.0/index.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/source-code-pro@4.5.0/index.css" rel="stylesheet">
+
+<div class="file-viewer-container" id="{{ container_id }}">
+    <div class="file-viewer-header">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <h5 class="file-name">{{ file_path.split('/')[-1] }}</h5>
+        </div>
+
+        <div class="card mb-2">
+            <div class="card-body py-2">
+                <div class="d-flex align-items-center flex-wrap small">
+                    <div class="file-info-item">
+                        <strong>路径:</strong> <span class="file-path">{{ file_path }}</span>
+                    </div>
+                    <div class="file-info-item">
+                        <strong>大小:</strong> <span class="file-size" id="{{ container_id }}-size">加载中...</span>
+                    </div>
+                    <div class="file-info-item">
+                        <strong>修改时间:</strong> <span class="file-modified"
+                                                         id="{{ container_id }}-modified">加载中...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="file-content-container">
+        <div class="card">
+            <div class="card-header bg-light">
+                <div class="d-flex align-items-center">
+                    <div class="editor-controls">
+                        <div class="control-item">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">语言</span>
+                                <select class="form-select form-select-sm" id="{{ container_id }}-editor-language">
+                                    <option value="plaintext">纯文本</option>
+                                    <option value="python">Python</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="html">HTML</option>
+                                    <option value="css">CSS</option>
+                                    <option value="json">JSON</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="yaml">YAML</option>
+                                    <option value="toml">TOML</option>
+                                    <option value="shell">Shell</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">字体大小</span>
+                                <select class="form-select form-select-sm" id="{{ container_id }}-font-size">
+                                    <option value="12">12px</option>
+                                    <option selected value="14">14px</option>
+                                    <option value="16">16px</option>
+                                    <option value="18">18px</option>
+                                    <option value="20">20px</option>
+                                    <option value="24">24px</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">自动换行</span>
+                                <div class="input-group-text">
+                                    <input class="form-check-input mt-0" id="{{ container_id }}-line-wrap"
+                                           type="checkbox">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editor-action-buttons">
+                        <button class="btn btn-sm btn-outline-secondary" id="{{ container_id }}-reload" type="button">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="{{ container_id }}-save" type="button">
+                            <i class="fas fa-save"></i> 保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="monaco-editor-container" id="{{ container_id }}-monaco-editor">
+                    <div class="loading-container">
+                        <i class="fas fa-file-alt"></i>
+                        <p>正在加载文件内容...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<script src="{{ url_for('static', filename='js/components/file_viewer.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initFileViewer('{{ container_id }}', '{{ file_path }}');
+    });
+</script>
+{% endmacro %} 

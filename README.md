@@ -138,6 +138,14 @@ xybotv2-volumes-dir/_data/plugins/all_in_one_config.toml
 docker-compose restart xybotv2
 ```
 
+6. 🌐 访问Web界面
+
+Docker容器现在使用Gunicorn和Eventlet运行应用，可以通过以下地址访问Web界面：
+
+```
+http://服务器IP地址:9999
+```
+
 > [!TIP]
 > 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
 
@@ -145,7 +153,7 @@ docker-compose restart xybotv2
 
 1. 🔌 Redis 连接失败
 
-- 检查 DragonFly 服务是否正常运行
+- 检查 Redis 服务是否正常运行
 - 确认 main_config.toml 中的 redis-host 配置是否正确
 
 2. ⚠️ 配置文件修改未生效
@@ -162,6 +170,11 @@ docker-compose logs -f xybotv2
 # 查看最近100行日志
 docker-compose logs --tail=100 xybotv2
 ```
+
+4. 🌐 无法访问Web界面
+
+- 确保9999端口已在防火墙中开放
+- 检查docker-compose.yml中的端口映射配置是否正确
 
 ## 💻 直接部署
 
@@ -221,6 +234,9 @@ python -m venv venv
 # 安装依赖
 pip install -r requirements.txt
 
+# 安装gunicorn和eventlet
+pip install gunicorn eventlet
+
 # 使用镜像源安装
 pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 ```
@@ -231,8 +247,11 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
 # 确保Redis服务已启动
 redis-cli ping  # 如果返回PONG则表示Redis正常运行
 
-# 启动机器人
-python main.py
+# 启动机器人 (旧方式)
+# python main.py
+
+# 启动机器人 (新方式 - 使用gunicorn和eventlet)
+python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
 ```
 
 #### 4. 📱 登录微信
@@ -256,11 +275,39 @@ python main.py
     ```bash
     # 按Ctrl+C停止机器人
     # 重新启动
-    python main.py
+    python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
     ```
 
 > [!TIP]
 > 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
+
+### 💻 无WebUI简单启动（最轻量级方式）
+
+如果你不需要WebUI界面，可以直接使用bot.py来运行机器人：
+
+**Windows:**
+```bash
+# 确保在虚拟环境中
+.\venv\Scripts\activate
+
+# 直接运行bot.py
+python bot.py
+```
+
+**Linux:**
+```bash
+# 确保在虚拟环境中
+source venv/bin/activate
+
+# 直接运行bot.py
+python bot.py
+```
+
+这种方式的优点:
+- 不需要安装gunicorn和eventlet
+- 二维码直接显示在终端中，扫码即可登录
+- 占用资源更少，运行更稳定
+- 所有机器人功能都可通过聊天命令使用
 
 ### 🐧 Linux 部署步骤
 
@@ -302,11 +349,14 @@ source venv/bin/activate
 # 安装依赖
 pip install -r requirements.txt
 
+# 安装gunicorn和eventlet
+pip install gunicorn eventlet
+
 # 使用镜像源安装
 pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 ```
 
-4. 🚀 启动机器人
+#### 3. 🚀 启动机器人
 
 ```bash
 # 确保在虚拟环境中
@@ -325,16 +375,19 @@ sudo systemctl enable redis
 redis-cli ping
 # 如果返回PONG表示连接正常
 
-# 启动机器人
-python3 main.py
+# 启动机器人 (旧方式)
+# python3 main.py
+
+# 启动机器人 (新方式 - 使用gunicorn和eventlet)
+python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
 ```
 
-5. 📱 登录微信
+#### 4. 📱 登录微信
 
 - 扫描终端显示的二维码完成登录。如果扫不出来,可以打开二维码下面的链接扫码。
 - 首次登录成功后,需要挂机4小时。之后机器人就会开始正常运行。
 
-6. ⚙️ 配置文件修改
+#### 5. ⚙️ 配置文件修改
 
 主配置: main_config.toml 主配置文件
 
@@ -349,11 +402,38 @@ python3 main.py
     ```bash
     # 按Ctrl+C停止机器人
     # 重新启动
-    python main.py
+    python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
     ```
 
 > [!TIP]
 > 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
+
+## ❓ 常见问题
+
+1. 与网络相关的报错
+
+- 检查网络连接，是否能ping通微信服务器
+- 尝试关闭代理软件，尝试重启电脑
+- 尝试重启XYBot和Redis
+- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和Redis数据库
+
+2. `正在运行`相关的报错
+
+- 将占用9000端口的进程强制结束
+
+3. 🌐 无法访问Web界面
+
+- 确保9999端口已在防火墙中开放
+- Windows上配置防火墙入站规则允许9999端口
+- Linux上使用以下命令开放端口：
+  ```bash
+  # Ubuntu/Debian
+  sudo ufw allow 9999
+  
+  # CentOS
+  sudo firewall-cmd --permanent --add-port=9999/tcp
+  sudo firewall-cmd --reload
+  ```
 
 # 💻 代码提交
 
@@ -368,16 +448,3 @@ python3 main.py
 - `test` 增加测试
 - `chore` 构建过程或辅助工具的变动
 - `revert` 撤销
-
-## ❓ 常见问题
-
-1. 与网络相关的报错
-
-- 检查网络连接，是否能ping通微信服务器
-- 尝试关闭代理软件，尝试重启电脑
-- 尝试重启XYBot和Redis
-- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和Dragonfly数据库
-
-2. `正在运行`相关的报错
-
-- 将占用9000端口的进程强制结束

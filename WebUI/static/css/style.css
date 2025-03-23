@@ -1,0 +1,539 @@
+/* ========== 全局基础样式 ========== */
+body {
+    padding-top: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    height: 100vh;
+    margin-left: 16.666667%;
+    width: 83.333333%;
+    padding: 15px;
+}
+
+/* ========== 侧边栏样式 ========== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 16.666667%;
+    height: 100vh;
+    background-color: #343a40;
+    overflow-y: hidden;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 15px;
+    background-color: #2c3136;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header .navbar-brand {
+    color: #fff;
+    font-size: 1.25rem;
+    margin-right: 0;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-actions {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-actions .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 5px 10px;
+    font-size: 0.9rem;
+}
+
+.sidebar-actions .nav-link:hover {
+    color: #fff;
+}
+
+.sidebar-content {
+    padding-top: 15px;
+    overflow-y: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-menu {
+    flex: 1;
+}
+
+.sidebar-footer {
+    padding: 10px 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 8px 15px;
+}
+
+.sidebar .nav-link:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* ========== 页脚样式 ========== */
+.footer {
+    background-color: #f5f5f5;
+    padding: 1rem 0;
+    margin-top: auto;
+    width: 83.333333%;
+    margin-left: 16.666667%;
+}
+
+/* ========== 通用卡片样式 ========== */
+.card {
+    margin-bottom: 20px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: #2c3e50;
+    margin-bottom: 0;
+}
+
+/* ========== 通用按钮样式 ========== */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-primary {
+    background-color: #3a86ff;
+    border-color: #3a86ff;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-primary:hover {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+}
+
+/* ========== 通用表格样式 ========== */
+.table-sm th {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.table-sm td {
+    color: #2c3e50;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* ========== 纯净通知系统 ========== */
+#notificationContainer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pure-notification {
+    background: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease-in-out;
+    pointer-events: auto;
+    text-align: center;
+    white-space: nowrap;
+    display: inline-block;
+    min-width: min-content;
+}
+
+/* 添加.show类以确保通知显示动画正常工作 */
+.pure-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 删除所有旧的notification-toast相关样式 */
+.notification-toast {
+    display: none !important;
+}
+
+/* 确保登录页面也能正确显示通知 */
+body.login-page #notificationContainer {
+    position: fixed !important;
+    top: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    align-items: center !important;
+}
+
+/* 添加通知类型样式 */
+.pure-notification.info-notification {
+    background: #e3f2fd !important;
+    border-color: #90caf9 !important;
+}
+
+.pure-notification.success-notification {
+    background: #e8f5e9 !important;
+    border-color: #a5d6a7 !important;
+}
+
+.pure-notification.warning-notification {
+    background: #fff3e0 !important;
+    border-color: #ffcc80 !important;
+}
+
+.pure-notification.error-notification {
+    background: #ffebee !important;
+    border-color: #ef9a9a !important;
+}
+
+/* ========== 自定义滚动条 ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ========== 日志查看器通用样式 ========== */
+.log-viewer {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 5px;
+    border: 1px solid #444;
+    padding: 0;
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overscroll-behavior: contain;
+    position: relative;
+}
+
+.log-line {
+    padding: 2px 10px;
+    display: block;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.log-line:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 日志级别样式 */
+.log-debug {
+    color: #42a7ff;
+}
+
+.log-info {
+    color: #ffffff;
+}
+
+.log-warning {
+    color: #ffc107;
+}
+
+.log-error {
+    color: #f14c4c;
+}
+
+.log-critical {
+    color: #ff0000;
+    font-weight: bold;
+    background-color: rgba(255, 0, 0, 0.2);
+}
+
+/* ========== 加载提示样式 ========== */
+.loading-container {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.loading-container .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.loading-container p {
+    margin-top: 1rem;
+    color: #6c757d;
+}
+
+.full-page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-content {
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== 响应式调整 ========== */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .footer {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .loading-container .spinner-border {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+/* ========== 登录页面通用样式 ========== */
+body.login-page {
+    background-color: #f8f9fa;
+    padding-top: 0 !important;
+}
+
+body.login-page .navbar,
+body.login-page .sidebar {
+    display: none !important;
+}
+
+body.login-page .content,
+body.login-page main {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+}
+
+/* ========== 模态框样式 ========== */
+.modal-content {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* ========== 内容骨架屏 ========== */
+.content-loader {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.skeleton-line {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* 状态指示器 */
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-online {
+    background-color: #28a745;
+}
+
+.status-offline {
+    background-color: #dc3545;
+}
+
+/* 状态卡片 */
+.status-card .card-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.status-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 控制卡片 */
+.control-card .card-body {
+    padding: 1.25rem;
+}
+
+/* 日志卡片 */
+.log-card .card-body {
+    padding: 0;
+}
+
+/* 工具卡片 */
+.tool-card {
+    transition: transform 0.3s;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+}
+
+/* 登录页面特殊样式 */
+.login-page {
+    background-color: #f8f9fa;
+}
+
+/* 表单样式 */
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #86b7fe;
+}
+
+/* 补充缺失的版本信息样式 */
+.version-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+/* 添加全局按钮重置 */
+button.btn-close {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+} 

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}登录 - {{ app_name }}{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/pages/auth.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <h1>{{ app_name }}</h1>
+        <p class="text-muted">微信机器人管理面板</p>
+    </div>
+    <div class="card login-card">
+        <div class="card-body p-4">
+            <h3 class="card-title text-center mb-4">管理员登录</h3>
+
+            <form class="needs-validation" method="POST" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                    placeholder="请输入用户名") }}
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.username.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                    placeholder="请输入密码") }}
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.password.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3 form-check">
+                    {{ form.remember_me(class="form-check-input") }}
+                    {{ form.remember_me.label(class="form-check-label") }}
+                </div>
+                <div class="d-grid">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="login-footer">
+        <p class="text-muted">&copy; {{ now.year }} XYBotV2. 保留所有权利。</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pages/auth.js') }}"></script>
+{% endblock %} 

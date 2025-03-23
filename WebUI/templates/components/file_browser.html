@@ -1,0 +1,72 @@
+{% macro file_browser(container_id='file-browser', initial_path='') %}
+<link href="{{ url_for('static', filename='css/components/file_browser.css') }}" rel="stylesheet">
+
+<div class="file-browser-container" id="{{ container_id }}">
+    <div class="file-browser-header">
+        <div class="d-flex justify-content-end w-100">
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" id="{{ container_id }}-refresh" type="button">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="{{ container_id }}-view-toggle" type="button">
+                    <i class="fas fa-th-list"></i> 切换视图
+                </button>
+            </div>
+        </div>
+        <div class="full-path-display" id="{{ container_id }}-full-path"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="file-list" id="{{ container_id }}-list"></div>
+        </div>
+    </div>
+</div>
+
+<template id="file-list-template">
+    <table class="table table-hover table-sm">
+        <thead>
+        <tr>
+            <th width="50%">名称</th>
+            <th width="20%">大小</th>
+            <th width="30%">修改时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 将通过JavaScript填充内容 -->
+        </tbody>
+    </table>
+</template>
+
+<template id="file-grid-template">
+    <div class="file-grid">
+        <!-- 将通过JavaScript填充内容 -->
+    </div>
+</template>
+
+<template id="file-item-template">
+    <tr class="file-item" data-path="{path}" data-type="{type}">
+        <td>
+            <i class="{icon}"></i>
+            <span class="file-name">{name}</span>
+        </td>
+        <td>{size}</td>
+        <td>{modified}</td>
+    </tr>
+</template>
+
+<template id="file-grid-item-template">
+    <div class="file-grid-item" data-path="{path}" data-type="{type}">
+        <div class="file-icon">
+            <i class="{icon}"></i>
+        </div>
+        <div class="file-grid-name">{name}</div>
+    </div>
+</template>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initFileBrowser('{{ container_id }}', '{{ initial_path }}');
+    });
+</script>
+{% endmacro %}

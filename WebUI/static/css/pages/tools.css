@@ -1,0 +1,134 @@
+/* 工具箱页面样式 */
+
+/* 工具卡片样式 */
+.tool-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 工具卡片头部 */
+.tool-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tool-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+    color: #007bff;
+}
+
+.tool-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* 工具卡片内容 */
+.tool-body {
+    padding: 15px;
+    flex-grow: 1;
+}
+
+.tool-description {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+/* 工具卡片底部 */
+.tool-footer {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 执行状态样式 */
+.execution-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+}
+
+.execution-status.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.execution-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.execution-status.loading {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+/* 执行日志样式 */
+.execution-log {
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: monospace;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* 加载状态样式 */
+.loading-container {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.loading-container .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.loading-container p {
+    margin-top: 1rem;
+    color: #6c757d;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .tool-header {
+        padding: 12px;
+    }
+
+    .tool-icon {
+        font-size: 1.5rem;
+        margin-right: 12px;
+    }
+
+    .tool-title {
+        font-size: 1.1rem;
+    }
+
+    .tool-body,
+    .tool-footer {
+        padding: 12px;
+    }
+
+    .execution-log {
+        max-height: 200px;
+        font-size: 0.8rem;
+    }
+} 

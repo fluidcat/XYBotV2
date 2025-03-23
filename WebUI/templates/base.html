@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <!-- 第三方CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+
+    <!-- 全局样式 - 包含所有通用样式：布局、卡片、按钮、表格、通知、日志查看器等 -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- 组件样式 - 特定的UI组件样式 -->
+    <link href="{{ url_for('static', filename='css/components/cards.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/file_browser.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/file_viewer.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/loading.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/modals.css') }}" rel="stylesheet">
+
+    <!-- 页面特定样式 - 由各个页面根据需要引入 -->
+    {% block styles %}{% endblock %}
+</head>
+<body>
+<!-- 通知容器 - 用于显示所有系统通知 -->
+<div id="notificationContainer"></div>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+    <!-- 侧边栏头部 -->
+    <div class="sidebar-header">
+        <a class="navbar-brand" href="/">{{ app_name }}</a>
+    </div>
+
+    <!-- 侧边栏内容区 -->
+    <div class="sidebar-content">
+        <div class="sidebar-menu">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                        <i class="fas fa-home"></i> 首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/plugin' in request.path %}active{% endif %}" href="/plugin">
+                        <i class="fas fa-puzzle-piece"></i> 插件管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/logs' in request.path %}active{% endif %}" href="/logs">
+                        <i class="fas fa-file-alt"></i> 日志管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/config' in request.path %}active{% endif %}" href="/config">
+                        <i class="fas fa-cogs"></i> 配置管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/tools' in request.path %}active{% endif %}" href="/tools">
+                        <i class="fas fa-tools"></i> 工具箱
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/explorer' in request.path %}active{% endif %}" href="/explorer">
+                        <i class="fas fa-folder-open"></i> 文件浏览器
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/about' in request.path %}active{% endif %}" href="/about">
+                        <i class="fas fa-info-circle"></i> 关于
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/auth/logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 主内容区 -->
+<main class="content" role="main">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="container text-center">
+        <span class="text-muted">2025 By HenryXiaoYang https://github.com/HenryXiaoYang/XYBotV2</span>
+    </div>
+</footer>
+
+<!-- 处理Flash消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<script>
+    // 页面加载完成后显示通知
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for category, message in messages %}
+        if (window.NotificationManager) {
+            NotificationManager.show({{ message|tojson }}, {{ category|tojson }});
+        } else {
+            showNotification({{ message|tojson }}, {{ category|tojson }});
+        }
+        {% endfor %}
+    });
+</script>
+{% endif %}
+{% endwith %}
+
+<!-- 第三方JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+
+<!-- 通知模块 - 统一管理系统通知 -->
+<script src="{{ url_for('static', filename='js/components/notification.js') }}"></script>
+
+<!-- 全局脚本 -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<!-- 组件脚本 -->
+<script src="{{ url_for('static', filename='js/components/cards.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/file_browser.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/file_viewer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/loading.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/modals.js') }}"></script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,48 @@
+.status-card {
+    margin-bottom: 20px;
+}
+
+.status-card .card-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.status-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-card .card-body {
+    padding: 1.25rem;
+}
+
+.log-card .card-body {
+    padding: 0;
+}
+
+.tool-card {
+    transition: transform 0.3s;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-online {
+    background-color: #28a745;
+}
+
+.status-offline {
+    background-color: #dc3545;
+} 

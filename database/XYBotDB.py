@@ -47,7 +47,6 @@ class XYBotDB(metaclass=Singleton):
 
         # 创建表
         Base.metadata.create_all(self.engine)
-        logger.success("数据库初始化成功")
 
         # 创建线程池执行器
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="database")
@@ -429,6 +428,13 @@ class XYBotDB(metaclass=Singleton):
             session.rollback()
             logger.error(f"Database: Set chatroom {chatroom_id} members failed, error: {e}")
             return False
+        finally:
+            session.close()
+
+    def get_users_count(self):
+        session = self.DBSession()
+        try:
+            return session.query(User).count()
         finally:
             session.close()
 

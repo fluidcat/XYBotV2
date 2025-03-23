@@ -54,6 +54,9 @@ python -m venv venv
 # 安装依赖
 pip install -r requirements.txt
 
+# 安装gunicorn和eventlet
+pip install gunicorn eventlet
+
 # 使用镜像源安装
 pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 ```
@@ -64,8 +67,8 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
 # 确保Redis服务已启动
 redis-cli ping  # 如果返回PONG则表示Redis正常运行
 
-# 启动机器人
-python main.py
+# 启动机器人 (新方式 - 使用gunicorn和eventlet)
+python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
 ```
 
 ## 4. 📱 登录微信
@@ -89,8 +92,37 @@ python main.py
     ```bash
     # 按Ctrl+C停止机器人
     # 重新启动
-    python main.py
+    python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999
     ```
+
+## 6. 🔄 创建Windows服务（可选）
+
+为了让机器人在后台运行并开机自启，可以创建Windows服务：
+
+1. 安装NSSM（Non-Sucking Service Manager）:
+   - 从 [NSSM官网](https://nssm.cc/download) 下载最新版本
+   - 解压到合适的目录
+
+2. 创建服务:
+   ```bash
+   # 打开管理员权限的命令提示符
+   cd C:\path\to\nssm\win64
+   
+   # 创建服务
+   nssm install XYBotV2
+   ```
+
+3. 在弹出的NSSM配置窗口中:
+   - Path: `C:\XYBotV2\venv\Scripts\python.exe`
+   - Startup directory: `C:\XYBotV2`
+   - Arguments: `-m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999`
+   - 在Details标签中设置服务名称和描述
+   - 点击"Install service"安装服务
+
+4. 启动服务:
+   ```bash
+   nssm start XYBotV2
+   ```
 
 > 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
 
@@ -101,8 +133,35 @@ python main.py
 - 检查网络连接，是否能ping通微信服务器
 - 尝试关闭代理软件，尝试重启电脑
 - 尝试重启XYBot和Redis
-- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和Dragonfly数据库
+- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和 Redis 数据库
 
 2. `正在运行`相关的报错
 
 - 将占用9000端口的进程强制结束
+
+3. 🌐 无法访问Web界面
+
+- 确保Windows防火墙允许9999端口通信
+  1. 打开"控制面板" -> "Windows Defender防火墙" -> "高级设置"
+  2. 选择"入站规则" -> "新建规则"
+  3. 规则类型选"端口" -> 指定TCP和9999端口 -> 允许连接 -> 给规则起名并完成
+
+## 6. 💻 不需要WebUI的简单启动方式
+
+如果你不需要WebUI界面，可以直接使用bot.py来运行机器人：
+
+```bash
+# 确保在虚拟环境中
+.\venv\Scripts\activate
+
+# 直接运行bot.py
+python bot.py
+```
+
+这种方式不会启动Web界面，机器人核心功能依然正常工作。使用这种方式时：
+- 二维码会直接显示在终端中，可直接扫码登录
+- 所有机器人功能正常可用
+- 但没有Web管理界面，所有操作需通过聊天命令完成
+
+> [!TIP]
+> 如果只是想简单使用机器人功能，这是最轻量级的运行方式。

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% from "components/cards.html" import status_card, control_card, log_card, metric_card %}
+{% from "components/loading.html" import spinner %}
+
+{% block title %}{{ page_title }} - {{ app_name }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="{{ url_for('static', filename='css/pages/overview.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-content">
+    <!-- 页面标题 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">概览</h1>
+    </div>
+
+    <!-- 状态卡片 -->
+    <div class="row" id="metricsRow">
+        <div class="col-md-4">
+            {{ status_card(
+            title="收到消息数",
+            value=metrics.messages,
+            icon="fa-comment",
+            color="primary",
+            metric_type="messages"
+            ) }}
+        </div>
+        <div class="col-md-4">
+            {{ status_card(
+            title="运行时长",
+            value=metrics.uptime,
+            icon="fa-clock",
+            color="success",
+            metric_type="uptime"
+            ) }}
+        </div>
+        <div class="col-md-4">
+            {{ status_card(
+            title="数据库用户数",
+            value=metrics.users,
+            icon="fa-users",
+            color="info",
+            metric_type="users"
+            ) }}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- 账号信息卡片 -->
+        <div class="col-md-6">
+            <div class="card mb-3 account-info-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">微信账号</h5>
+                </div>
+                <div class="card-body py-4">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-5 d-flex justify-content-center align-items-center">
+                            <div class="profile-picture-container">
+                                <div class="profile-picture" id="profilePicture">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-sm-7 ps-md-4 pt-3 pt-sm-0">
+                            <h5 class="mb-3" id="botNickname">加载中...</h5>
+                            <p class="mb-3"><strong>wxid:</strong> <span id="botWxid">加载中...</span></p>
+                            <p class="mb-0"><strong>微信号:</strong> <span id="botAlias">加载中...</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态信息卡片 -->
+        <div class="col-md-6">
+            <div class="card mb-3 h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">状态信息</h5>
+                </div>
+                <div class="card-body py-4">
+                    <table class="table table-sm">
+                        <tbody>
+                        <tr>
+                            <th scope="row">运行状态</th>
+                            <td>
+                                {% if bot_status.running %}
+                                <span class="badge bg-success">运行中</span>
+                                {% else %}
+                                <span class="badge bg-danger">已停止</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">进程ID</th>
+                            <td>{{ bot_status.pid or '无' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">启动时间</th>
+                            <td>
+                                {% if bot_status.start_time %}
+                                {{ bot_status.start_time|timestamp_to_datetime }}
+                                {% else %}
+                                未启动
+                                {% endif %}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 控制栏和日志标题 -->
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <div class="xybot-title">
+            <i class="fas fa-robot me-2"></i>实时日志
+        </div>
+        <div>
+            <button class="btn btn-success me-2" id="startBtn" style="display: none;">
+                <i class="fas fa-play"></i> 启动
+            </button>
+            <button class="btn btn-danger me-2" id="stopBtn" style="display: none;">
+                <i class="fas fa-stop"></i> 停止
+            </button>
+            <button class="btn btn-warning me-2" id="restartBtn" style="display: none;">
+                <i class="fas fa-redo"></i> 重启
+            </button>
+        </div>
+    </div>
+
+    <!-- 日志查看器 -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="log-viewer" id="logViewer">
+                <div class="text-center p-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2 text-muted">正在加载日志...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面底部空间 -->
+    <div class="page-footer-space"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/pages/overview.js') }}?v=202403113"></script>
+{% endblock %} 

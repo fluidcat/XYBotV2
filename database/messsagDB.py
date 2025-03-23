@@ -121,7 +121,25 @@ class MessageDB(metaclass=Singleton):
 
     async def close(self):
         """关闭数据库连接"""
-        await self.engine.dispose()
+        try:
+            # 取消清理任务如果正在运行
+            for task in asyncio.all_tasks():
+                if task != asyncio.current_task() and 'cleanup_messages' in str(task):
+                    task.cancel()
+                    try:
+                        await task
+                    except asyncio.CancelledError:
+                        pass
+
+            # 关闭连接
+            await self.engine.dispose()
+            return True
+        except asyncio.CancelledError:
+            logging.warning("数据库关闭过程被取消，这可能是正常的关闭行为")
+            return True
+        except Exception as e:
+            logging.error(f"关闭数据库连接时出错: {str(e)}")
+            return False
 
     async def cleanup_messages(self):
         """每三天清理旧消息"""

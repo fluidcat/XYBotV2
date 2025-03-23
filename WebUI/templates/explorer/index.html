@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "components/file_browser.html" import file_browser %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/pages/explorer.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">文件浏览器</h1>
+        <div>
+            <a class="btn btn-sm btn-outline-secondary" href="javascript:history.back()">
+                <i class="fas fa-arrow-left"></i> 返回
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-light p-3 rounded-3 shadow-sm">
+        {{ file_browser(container_id='file-explorer', initial_path=initial_path) }}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pages/explorer.js') }}"></script>
+{% endblock %}  

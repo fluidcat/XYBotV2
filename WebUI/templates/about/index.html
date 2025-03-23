@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}关于 - {{ app_name }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="{{ url_for('static', filename='css/pages/about.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-4 mb-4">XYBot V2</h1>
+                    <p class="lead mb-4">🤖 功能丰富的微信机器人框架</p>
+
+                    <div class="version-info mb-4">
+                        <p class="mb-2">
+                            当前版本：<span>V1.0.0</span>
+                        </p>
+                        <p class="mb-2">
+                            作者：<a href="https://github.com/HenryXiaoYang" target="_blank">HenryXiaoYang</a>
+                        </p>
+                    </div>
+
+                    <a class="btn btn-primary"
+                       href="https://github.com/HenryXiaoYang/XYBotV2"
+                       target="_blank">
+                        <i class="fab fa-github me-2"></i> 访问 GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

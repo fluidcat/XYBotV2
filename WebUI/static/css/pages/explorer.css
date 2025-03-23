@@ -1,0 +1,140 @@
+/* 文件浏览器页面样式 */
+.explorer-container {
+    min-height: calc(100vh - 120px);
+}
+
+/* 文件浏览器头部 */
+.explorer-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.explorer-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* 文件浏览器工具栏 */
+.explorer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.explorer-toolbar .btn-group {
+    margin-left: auto;
+}
+
+/* 文件浏览器内容区 */
+.explorer-content {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+}
+
+/* 文件浏览器面包屑导航 */
+.explorer-breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.explorer-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+}
+
+/* 文件浏览器列表视图 */
+.explorer-list {
+    width: 100%;
+}
+
+.explorer-list th {
+    font-weight: 500;
+    border-top: none;
+}
+
+.explorer-list td {
+    vertical-align: middle;
+}
+
+/* 文件浏览器网格视图 */
+.explorer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.explorer-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.explorer-grid-item:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.explorer-grid-item i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.explorer-grid-item span {
+    font-size: 0.875rem;
+    word-break: break-word;
+}
+
+/* 文件图标颜色 */
+.file-icon.folder {
+    color: #ffd700;
+}
+
+.file-icon.image {
+    color: #28a745;
+}
+
+.file-icon.text {
+    color: #17a2b8;
+}
+
+.file-icon.code {
+    color: #007bff;
+}
+
+.file-icon.archive {
+    color: #6c757d;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .explorer-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .explorer-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .explorer-toolbar .btn-group {
+        margin-left: 0;
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    .explorer-toolbar .btn-group .btn {
+        flex: 1;
+    }
+} 

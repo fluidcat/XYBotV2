@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}工具箱 - {{ app_name }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="{{ url_for('static', filename='css/pages/tools.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">工具箱</h1>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="toolsContainer">
+                        <div class="col-12">
+                            <div class="loading-container">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">加载中...</span>
+                                </div>
+                                <p>正在加载工具...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认模态框 -->
+<div aria-hidden="true" aria-labelledby="confirmModalLabel" class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">确认执行</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                确定要执行此工具吗？
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" id="confirmModalConfirm" type="button">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 执行详情模态框 -->
+<div aria-hidden="true" aria-labelledby="executeDetailModalLabel" class="modal fade" id="executeDetailModal"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="executeDetailModalLabel">执行详情</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="execution-status" id="detailExecutionStatus">
+                    <span id="detailStatusText"></span>
+                </div>
+                <div class="execution-log mt-3" id="executionLog"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" type="button">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/pages/tools.js') }}"></script>
+{% endblock %} 

@@ -1,4 +1,5 @@
 import hashlib
+import io
 import string
 from random import choice
 from typing import Union
@@ -25,7 +26,7 @@ class LoginMixin(WechatAPIClientBase):
         except aiohttp.client_exceptions.ClientConnectorError:
             return False
 
-    async def get_qr_code(self, device_name: str, device_id: str = "", proxy: Proxy = None, print_qr: bool = False) -> (
+    async def get_qr_code(self, device_name: str, device_id: str = "", proxy: Proxy = None) -> (
             str, str):
         """获取登录二维码。
 
@@ -33,10 +34,9 @@ class LoginMixin(WechatAPIClientBase):
             device_name (str): 设备名称
             device_id (str, optional): 设备ID. Defaults to "".
             proxy (Proxy, optional): 代理信息. Defaults to None.
-            print_qr (bool, optional): 是否在控制台打印二维码. Defaults to False.
 
         Returns:
-            tuple[str, str]: 返回登录二维码的UUID和URL
+            tuple[str, str, str]: 返回UUID，URL，登录二维码
 
         Raises:
             根据error_handler处理错误
@@ -52,19 +52,18 @@ class LoginMixin(WechatAPIClientBase):
             json_resp = await response.json()
 
             if json_resp.get("Success"):
+                qr = qrcode.QRCode(
+                    version=1,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(f'http://weixin.qq.com/x/{json_resp.get("Data").get("Uuid")}')
+                qr.make(fit=True)
+                f = io.StringIO()
+                qr.print_ascii(out=f)
+                f.seek(0)
 
-                if print_qr:
-                    qr = qrcode.QRCode(
-                        version=1,
-                        error_correction=qrcode.constants.ERROR_CORRECT_L,
-                        box_size=10,
-                        border=4,
-                    )
-                    qr.add_data(f'http://weixin.qq.com/x/{json_resp.get("Data").get("Uuid")}')
-                    qr.make(fit=True)
-                    qr.print_ascii()
-
-                return json_resp.get("Data").get("Uuid"), json_resp.get("Data").get("QRCodeURL")
+                return json_resp.get("Data").get("Uuid"), json_resp.get("Data").get("QRCodeURL"), f.read()
             else:
                 self.error_handler(json_resp)
 

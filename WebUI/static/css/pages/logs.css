@@ -1,0 +1,44 @@
+/* 日志页面特定样式 */
+.logs-container {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    min-height: calc(100vh - 60px);
+}
+
+/* 日志容器样式 */
+.log-container {
+    height: 400px;
+    margin-bottom: 15px;
+}
+
+/* 控制按钮样式 */
+.log-controls {
+    margin-bottom: 10px;
+}
+
+.log-controls button {
+    margin-right: 5px;
+}
+
+/* 控制面板样式 */
+.log-panel {
+    margin-bottom: 20px;
+}
+
+.log-panel .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 暗色主题样式调整 */
+[data-bs-theme="dark"] .log-container,
+[data-bs-theme="dark"] .log-viewer {
+    background-color: #121212;
+    border: 1px solid #333;
+}
+
+/* 页脚间距 */
+.page-footer-space {
+    height: 30px;
+} 

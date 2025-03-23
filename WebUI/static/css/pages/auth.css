@@ -1,0 +1,51 @@
+/* 登录页面专用样式 */
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h1 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.login-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    border: none;
+}
+
+.login-card .card-title {
+    color: #444;
+    font-weight: 500;
+}
+
+.login-footer {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+/* 输入框样式优化 */
+.login-card .form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+}
+
+.login-card .btn-primary {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 5px;
+}
+
+/* 移除通知容器位置调整，使用style.css中的统一定义 */ 

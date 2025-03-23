@@ -6,6 +6,7 @@ from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from WechatAPI.Client.protect import protector
+from database.keyvalDB import KeyvalDB
 from database.messsagDB import MessageDB
 from utils.event_manager import EventManager
 import re
@@ -29,6 +30,7 @@ class XYBot:
         self.blacklist = main_config.get("XYBot", {}).get("blacklist", [])
 
         self.msg_db = MessageDB()
+        self.key_db = KeyvalDB()
 
     def update_profile(self, wxid: str, nickname: str, alias: str, phone: str):
         """更新机器人信息"""
@@ -39,6 +41,9 @@ class XYBot:
 
     async def process_message(self, message: Dict[str, Any]):
         """处理接收到的消息"""
+
+        # 数据库消息数+1先
+        await self.key_db.set("messages", str(int(await self.key_db.get("messages")) + 1))
 
         msg_type = message.get("MsgType")
 

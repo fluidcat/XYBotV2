@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}配置管理 - {{ app_name }}{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/pages/config.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">配置管理</h1>
+                    <div class="card-tools">
+                        <!-- 已移除备份管理相关按钮 -->
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="configForm">
+                        <div id="configSections">
+                            <!-- 配置部分将通过JavaScript动态加载 -->
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">加载中...</span>
+                                </div>
+                                <p class="mt-2">正在加载配置...</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 保存按钮 -->
+<button class="btn btn-success btn-lg save-btn-fixed" id="saveConfig" type="button">
+    <i class="fas fa-save"></i> 保存配置
+</button>
+
+<!-- 确认模态框 -->
+<div aria-hidden="true" aria-labelledby="confirmModalLabel" class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">确认操作</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                确定要执行此操作吗？
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" id="confirmModalConfirm" type="button">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pages/config.js') }}"></script>
+{% endblock %} 

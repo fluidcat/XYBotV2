@@ -1,0 +1,225 @@
+/* 插件管理页面样式 */
+
+/* 容器样式 */
+.plugin-container {
+    padding: 1.5rem 1rem;
+}
+
+/* 头部样式 */
+.plugin-header {
+    margin-bottom: 1.5rem;
+}
+
+/* 搜索框样式 */
+.plugin-search {
+    width: 200px;
+    margin-left: 8px;
+}
+
+.plugin-search .form-control {
+    border-radius: 4px 0 0 4px;
+    padding: 0.25rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.plugin-search .input-group-text {
+    border-radius: 0 4px 4px 0;
+    background-color: #f8f9fa;
+    border-left: none;
+}
+
+.plugin-search .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(58, 134, 255, 0.25);
+    border-color: #3a86ff;
+    z-index: 3;
+}
+
+/* 插件卡片样式 */
+.plugin-card {
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.plugin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.plugin-info {
+    padding: 1rem;
+}
+
+.plugin-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.plugin-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.plugin-description {
+    color: #495057;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* 按钮样式 */
+.btn-soft-primary {
+    color: #3a86ff;
+    background-color: rgba(58, 134, 255, 0.1);
+    border: 1px solid rgba(58, 134, 255, 0.1);
+}
+
+.btn-soft-primary:hover {
+    color: white;
+    background-color: #3a86ff;
+}
+
+.btn-soft-success {
+    color: #38b000;
+    background-color: rgba(56, 176, 0, 0.1);
+    border: 1px solid rgba(56, 176, 0, 0.1);
+}
+
+.btn-soft-success:hover {
+    color: white;
+    background-color: #38b000;
+}
+
+.btn-soft-danger {
+    color: #ff006e;
+    background-color: rgba(255, 0, 110, 0.1);
+    border: 1px solid rgba(255, 0, 110, 0.1);
+}
+
+.btn-soft-danger:hover {
+    color: white;
+    background-color: #ff006e;
+}
+
+.btn-soft-secondary {
+    color: #6c757d;
+    background-color: rgba(108, 117, 125, 0.1);
+    border: 1px solid rgba(108, 117, 125, 0.1);
+}
+
+.btn-soft-secondary:hover {
+    color: white;
+    background-color: #6c757d;
+}
+
+/* 按钮动效 */
+.plugin-action-btn, .reload-btn, .config-btn {
+    transition: all 0.2s ease;
+    min-width: 38px;
+}
+
+.plugin-action-btn {
+    min-width: 100px;
+}
+
+.plugin-action-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reload-btn:not(:disabled):hover {
+    transform: rotate(360deg);
+}
+
+.config-btn:not(:disabled):hover {
+    transform: scale(1.1);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 按钮间距 */
+.gap-3 > * {
+    margin: 0 4px;
+}
+
+.gap-4 {
+    gap: 1.5rem !important;
+}
+
+/* 插件详情模态框样式 */
+.plugin-detail-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.plugin-detail-tabs {
+    margin-bottom: 1.5rem;
+}
+
+.plugin-info-section {
+    margin-bottom: 2rem;
+}
+
+.plugin-info-section dt {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.plugin-info-section dd {
+    color: #2c3e50;
+}
+
+/* Markdown内容样式 */
+.markdown-content {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* 配置编辑器样式 */
+#plugin-config-editor {
+    height: 400px;
+    margin-bottom: 1rem;
+}
+
+/* 文件浏览器模态框样式 */
+#fileBrowserModal .modal-dialog {
+    max-width: 90%;
+    height: 90vh;
+}
+
+#fileBrowserModal .modal-body {
+    height: calc(90vh - 120px);
+    overflow: hidden;
+}
+
+#plugin-file-browser .file-list {
+    max-height: none;
+    height: 100%;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .plugin-search {
+        width: 150px;
+    }
+
+    .plugin-action-btn {
+        min-width: 80px;
+    }
+
+    .plugin-card .card-body {
+        padding: 1rem;
+    }
+
+    .plugin-meta {
+        flex-direction: column;
+    }
+
+    .plugin-meta > * {
+        margin-bottom: 0.5rem;
+    }
+} 

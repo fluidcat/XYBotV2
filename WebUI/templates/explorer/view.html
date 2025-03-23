@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "components/file_viewer.html" import file_viewer %}
+
+{% block title %}文件查看 - {{ file_path }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-file-code me-1"></i>
+                        文件查看器
+                    </div>
+                    <a class="btn btn-sm btn-outline-secondary" href="javascript:history.back()">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </a>
+                </div>
+                <div class="card-body">
+                    {{ file_viewer(file_path=file_path, container_id='file-viewer') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pages/explorer.js') }}"></script>
+{% endblock %} 

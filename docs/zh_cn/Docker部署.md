@@ -56,11 +56,19 @@ docker-compose restart xybotv2
 
 > 如果是修改插件配置则可使用热加载、热卸载、热重载指令，不用重启机器人。
 
+6. 🔄 访问Web界面
+
+应用现在使用gunicorn和eventlet运行，Web界面可通过以下地址访问：
+
+```
+http://服务器IP地址:9999
+```
+
 ## ❓ 常见问题
 
 1. 🔌 Redis 连接失败
 
-- 检查 DragonFly 服务是否正常运行
+- 检查 Redis 服务是否正常运行
 - 确认 main_config.toml 中的 redis-host 配置是否正确
 
 2. ⚠️ 配置文件修改未生效
@@ -83,8 +91,13 @@ docker-compose logs --tail=100 xybotv2
 - 检查网络连接，是否能ping通微信服务器
 - 尝试关闭代理软件，尝试重启电脑
 - 尝试重启XYBot和Redis
-- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和Dragonfly数据库
+- 如是Docker部署，检查Docker容器网络是否能连接到微信服务器和 Redis 数据库
 
 5. `正在运行`相关的报错
 
 - 将占用9000端口的进程强制结束
+
+6. 🌐 无法访问Web界面
+
+- 确保9999端口已在防火墙中开放
+- 检查docker-compose.yml中的端口映射配置

@@ -52,3 +52,8 @@ sch_mass_chatroom = [
     "45212824964@chatroom"
 ]
 sch_mass_wxid = []
+
+[WebUI]
+admin-username = "admin" # 管理员账号
+admin-password = "admin123" # 管理员密码（注意安全风险！）
+session-timeout = 30 # 会话超时时间（分钟）

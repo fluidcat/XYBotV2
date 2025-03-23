@@ -1,0 +1,100 @@
+/* 关于页面样式 */
+.about-container {
+    padding: 20px;
+}
+
+.about-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.about-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.about-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.about-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.about-section p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.version-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.version-info .label {
+    font-weight: bold;
+    color: #495057;
+    margin-right: 10px;
+}
+
+.version-info .value {
+    color: #6c757d;
+}
+
+.system-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.system-info-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.system-info-item .label {
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.system-info-item .value {
+    color: #6c757d;
+    word-break: break-all;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .about-container {
+        padding: 15px !important;
+    }
+
+    .about-header h1 {
+        font-size: 2rem;
+    }
+
+    .about-section {
+        padding: 15px;
+    }
+
+    .system-info {
+        grid-template-columns: 1fr;
+    }
+
+    .lead {
+        font-size: 1.1rem;
+    }
+} 

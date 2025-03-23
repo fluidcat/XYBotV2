@@ -1,0 +1,64 @@
+{% macro spinner(size="md", color="primary", text="加载中...") %}
+{% set sizes = {"sm": "spinner-border-sm", "md": "", "lg": "spinner-border spinner-border-lg"} %}
+<div class="d-flex justify-content-center align-items-center loading-container">
+    <div class="spinner-border text-{{ color }} {{ sizes[size] }}" role="status">
+        <span class="visually-hidden">{{ text }}</span>
+    </div>
+    {% if text %}
+    <span class="ms-2">{{ text }}</span>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro progress(value=25, color="primary", striped=True, animated=True, label=True) %}
+{% set progress_classes = "progress-bar bg-" ~ color %}
+{% if striped %}
+{% set progress_classes = progress_classes ~ " progress-bar-striped" %}
+{% endif %}
+{% if animated %}
+{% set progress_classes = progress_classes ~ " progress-bar-animated" %}
+{% endif %}
+<div class="progress" style="height: 20px;">
+    <div aria-valuemax="100"
+         aria-valuemin="0"
+         aria-valuenow="{{ value }}"
+         class="{{ progress_classes }}"
+         role="progressbar"
+         style="width: {{ value }}%">
+        {% if label %}{{ value }}%{% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro full_page_loader(message="页面加载中...") %}
+<div class="full-page-loader" id="fullPageLoader">
+    <div class="loader-content">
+        <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+        {% if message %}
+        <p class="mt-3">{{ message }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro content_loader(size="md", container_class="") %}
+<div class="content-loader {{ container_class }}">
+    <div class="loader-skeleton">
+        {% if size == "sm" %}
+        <div class="skeleton-line" style="width: 30%; height: 15px;"></div>
+        <div class="skeleton-line" style="width: 80%; height: 15px;"></div>
+        {% elif size == "lg" %}
+        <div class="skeleton-line" style="width: 40%; height: 25px;"></div>
+        <div class="skeleton-line" style="width: 90%; height: 15px;"></div>
+        <div class="skeleton-line" style="width: 60%; height: 15px;"></div>
+        <div class="skeleton-line" style="width: 75%; height: 15px;"></div>
+        {% else %}
+        <div class="skeleton-line" style="width: 40%; height: 20px;"></div>
+        <div class="skeleton-line" style="width: 90%; height: 15px;"></div>
+        <div class="skeleton-line" style="width: 60%; height: 15px;"></div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %} 

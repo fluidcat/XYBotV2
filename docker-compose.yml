@@ -3,6 +3,8 @@ services:
     image: henryxiaoyang/xybotv2:latest
     container_name: XYBotV2
     restart: on-failure:3
+    ports:
+      - "9999:9999"  # 映射gunicorn端口
     volumes:
       - xybotv2:/app
       - redis_data:/var/lib/redis

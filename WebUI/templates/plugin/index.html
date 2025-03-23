@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% from 'components/file_browser.html' import file_browser %}
+
+{% block title %}插件管理 - {{ app_name }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.0/dist/jsoneditor.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/pages/plugin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid plugin-container">
+    <!-- 标题和操作区域 -->
+    <div class="d-flex justify-content-between align-items-center plugin-header">
+        <h1 class="h3 mb-0">插件管理</h1>
+        <div class="d-flex align-items-center">
+            <!-- 刷新按钮 -->
+            <button class="btn btn-sm btn-outline-secondary me-2" id="refreshPlugins" type="button">
+                <i class="fas fa-sync-alt"></i> 刷新列表
+            </button>
+
+            <!-- 搜索框 -->
+            <div class="input-group input-group-sm plugin-search">
+                <input class="form-control" id="pluginSearch" placeholder="搜索插件..." type="text">
+                <div class="input-group-append">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 插件列表容器 -->
+    <div id="pluginListContainer">
+        <div class="text-center p-4 text-gray-500">加载中...</div>
+    </div>
+</div>
+
+<!-- 插件详情模态框 -->
+<div aria-hidden="true" aria-labelledby="pluginDetailModalLabel" class="modal fade" id="pluginDetailModal"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pluginDetailModalLabel">插件详情</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="pluginDetailTabs" role="tablist">
+                    <li class="nav-item">
+                        <a aria-controls="info" aria-selected="true" class="nav-link active" data-toggle="tab"
+                           href="#info"
+                           id="info-tab" role="tab">基本信息</a>
+                    </li>
+                    <li class="nav-item" id="readme-tab-item">
+                        <a aria-controls="readme" aria-selected="false" class="nav-link" data-toggle="tab"
+                           href="#readme"
+                           id="readme-tab" role="tab">说明文档</a>
+                    </li>
+                    <li class="nav-item" id="config-tab-item">
+                        <a aria-controls="config" aria-selected="false" class="nav-link" data-toggle="tab"
+                           href="#config"
+                           id="config-tab" role="tab">配置</a>
+                    </li>
+                </ul>
+                <div class="tab-content p-3" id="pluginDetailTabsContent">
+                    <!-- 基本信息 -->
+                    <div aria-labelledby="info-tab" class="tab-pane fade show active" id="info" role="tabpanel">
+                        <div class="plugin-info">
+                            <h4 id="plugin-name">加载中...</h4>
+                            <p id="plugin-description"></p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">作者:</dt>
+                                        <dd class="col-sm-8" id="plugin-author"></dd>
+                                        <dt class="col-sm-4">版本:</dt>
+                                        <dd class="col-sm-8" id="plugin-version"></dd>
+                                        <dt class="col-sm-4">状态:</dt>
+                                        <dd class="col-sm-8" id="plugin-status"></dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">目录:</dt>
+                                        <dd class="col-sm-8" id="plugin-directory"></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 说明文档 -->
+                    <div aria-labelledby="readme-tab" class="tab-pane fade" id="readme" role="tabpanel">
+                        <div class="markdown-content" id="plugin-readme">
+                            <!-- README内容将通过JavaScript加载 -->
+                        </div>
+                    </div>
+
+                    <!-- 配置 -->
+                    <div aria-labelledby="config-tab" class="tab-pane fade" id="config" role="tabpanel">
+                        <form id="plugin-config-form">
+                            <div id="plugin-config-editor">
+                                <!-- 配置编辑器将通过JavaScript加载 -->
+                            </div>
+                            <div class="text-right mt-3">
+                                <button class="btn btn-primary" id="savePluginConfig" type="button">保存配置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" type="button">关闭</button>
+                <button class="btn btn-warning" id="reloadPlugin" type="button">重新加载</button>
+                <button class="btn btn-success" id="enableDisablePlugin" type="button">加载</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文件浏览器模态框 -->
+<div aria-hidden="true" class="modal fade" id="fileBrowserModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">文件浏览器 - <span id="currentPluginName"></span></h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                {{ file_browser(container_id='plugin-file-browser') }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.0/dist/jsoneditor.min.js"></script>
+<script src="{{ url_for('static', filename='js/pages/plugin.js') }}"></script>
+{% endblock %} 
