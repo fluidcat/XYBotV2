@@ -15,6 +15,7 @@ from WechatAPI.Server.WechatAPIServer import wechat_api_server
 from database.XYBotDB import XYBotDB
 from database.keyvalDB import KeyvalDB
 from database.messsagDB import MessageDB
+from utils.config_util import loadConfig
 from utils.decorators import scheduler
 from utils.plugin_manager import PluginManager
 from utils.xybot import XYBot
@@ -31,27 +32,33 @@ async def run_bot():
 
         # 读取主设置
         config_path = script_dir / "main_config.toml"
-        with open(config_path, "rb") as f:
-            main_config = tomllib.load(f)
+        main_config = loadConfig(config_path)
 
         logger.success("读取主设置成功")
 
         # 启动WechatAPI服务
         server = wechat_api_server
         api_config = main_config.get("WechatAPIServer", {})
-        redis_host = api_config.get("redis-host", "127.0.0.1")
-        redis_port = api_config.get("redis-port", 6379)
-        logger.debug("Redis 主机地址: {}:{}", redis_host, redis_port)
-        await server.start(port=api_config.get("port", 9000),
-                           mode=api_config.get("mode", "release"),
-                           redis_host=redis_host,
-                           redis_port=redis_port,
-                           redis_password=api_config.get("redis-password", ""),
-                           redis_db=api_config.get("redis-db", 0))
+        remote_ip = api_config.get("remote-ip", '')
+        remote_port = api_config.get("remote-port", 9000)
 
-        # 实例化WechatAPI客户端
-        bot = WechatAPI.WechatAPIClient("127.0.0.1", api_config.get("port", 9000))
-        bot.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
+        if not remote_ip:
+            redis_host = api_config.get("redis-host", "127.0.0.1")
+            redis_port = api_config.get("redis-port", 6379)
+            logger.debug("Redis 主机地址: {}:{}", redis_host, redis_port)
+            await server.start(port=api_config.get("port", 9000),
+                               mode=api_config.get("mode", "release"),
+                               redis_host=redis_host,
+                               redis_port=redis_port,
+                               redis_password=api_config.get("redis-password", ""),
+                               redis_db=api_config.get("redis-db", 0))
+
+            # 实例化WechatAPI客户端
+            bot = WechatAPI.WechatAPIClient("127.0.0.1", api_config.get("port", 9000))
+            bot.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
+        else:
+            bot = WechatAPI.WechatAPIClient(remote_ip, remote_port)
+            bot.ignore_protect = False
 
         # 等待WechatAPI服务启动
         time_out = 10
@@ -75,6 +82,13 @@ async def run_bot():
         plugin_manager.set_bot(bot)
         loaded_plugins = await plugin_manager.load_plugins(load_disabled=False)
         logger.success(f"已加载插件: {loaded_plugins}")
+
+        scheduler.print_jobs(out=type(
+            "", (object,), {
+                "write": lambda self, log: logger.debug(log.strip()) if log.strip() else None,
+                "flush": lambda self: None,
+            }
+        )())
 
         # ==========登陆==========
 
@@ -268,7 +282,7 @@ async def init_system():
     logger.level("API", no=1, color="<cyan>")
 
     logger.add(
-        "logs/xybot.log",
+        "logs/XYBot_{time:YYYY_MM_DD}.log",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
         encoding="utf-8",
         enqueue=True,
@@ -276,7 +290,7 @@ async def init_system():
         retention="2 weeks",
         backtrace=True,
         diagnose=True,
-        level="DEBUG",
+        level="INFO",
     )
     logger.add(
         sys.stdout,
@@ -288,7 +302,7 @@ async def init_system():
         diagnose=True,
     )
     logger.add(
-        "logs/wechatapi.log",
+        "logs/wechatapi_{time:YYYY_MM_DD}.log",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
         level="API",
         encoding="utf-8",
