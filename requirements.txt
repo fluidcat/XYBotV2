@@ -19,14 +19,13 @@ numpy~=1.26.4
 requests~=2.32.3
 pydantic~=2.10.6
 aiosqlite~=0.20.0
-nicegui~=2.11.1
 Flask==2.3.3
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-Session==0.5.0
 Flask-SocketIO==5.3.6
 WTForms==3.2.1
-Werkzeug==2.3.7
+Werkzeug>=3.0.6
 Bootstrap-Flask==2.3.3
 python-dotenv==1.0.1
 tomli==2.0.1

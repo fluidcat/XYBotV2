@@ -3,11 +3,36 @@ import os
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple, Any, Union
 
+# 添加 monkey patch 修复 Flask-Session 与 Werkzeug 的兼容性问题
+import flask_session.sessions
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager
 from flask_session import Session
 from flask_socketio import SocketIO
 from loguru import logger
+
+# 保存原始的 save_session 方法
+original_save_session = flask_session.sessions.FileSystemSessionInterface.save_session
+
+# 创建修复的 save_session 方法
+def patched_save_session(self, app, session, response):
+    # 如果会话 ID 是字节类型，转换为字符串
+    if hasattr(self, 'get_session_id') and callable(self.get_session_id):
+        original_get_session_id = self.get_session_id
+        
+        def wrapped_get_session_id(session):
+            session_id = original_get_session_id(session)
+            if isinstance(session_id, bytes):
+                return session_id.decode('utf-8')
+            return session_id
+            
+        self.get_session_id = wrapped_get_session_id
+    
+    # 调用原始方法
+    return original_save_session(self, app, session, response)
+
+# 应用 monkey patch
+flask_session.sessions.FileSystemSessionInterface.save_session = patched_save_session
 
 
 class InterceptHandler(logging.Handler):

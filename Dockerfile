@@ -29,10 +29,8 @@ COPY . .
 
 # 创建启动脚本
 RUN echo '#!/bin/bash\n\
-# 启动Redis服务\n\
 redis-server /etc/redis/redis.conf --daemonize yes\n\
-# 执行主程序 - 使用gunicorn和eventlet\n\
-exec python -m gunicorn --worker-class eventlet app:app --bind 0.0.0.0:9999' > /app/start.sh \
+python app.py' > /app/start.sh \
     && chmod +x /app/start.sh
 
 # 设置启动命令
