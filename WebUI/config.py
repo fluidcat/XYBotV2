@@ -2,16 +2,13 @@ import os
 import tomllib
 from pathlib import Path
 
+from utils.config_util import loadConfig
+
 # 项目根目录
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 尝试读取主配置文件
-try:
-    with open(BASE_DIR / 'main_config.toml', 'rb') as f:
-        toml_config = tomllib.load(f)
-        WEBUI_CONFIG = toml_config.get('WebUI', {})
-except (FileNotFoundError, tomllib.TOMLDecodeError):
-    WEBUI_CONFIG = {}
+WEBUI_CONFIG = loadConfig(BASE_DIR / 'main_config.toml').get('WebUI', {})
 
 # Flask应用配置
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev_key_please_change_in_production')
