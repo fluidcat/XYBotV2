@@ -1,0 +1,7 @@
+[ArticleSummary]
+# 是否启用插件
+enable = true
+max_words = 8000
+jina_reader_base = "https://r.jina.ai"
+white_url_list = []
+black_url_list = ["https://support.weixin.qq.com", "https://channels-aladin.wxqcloud.qq.com"]

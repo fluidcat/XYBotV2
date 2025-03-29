@@ -48,6 +48,11 @@ class LLMBridge(PluginBase):
 
     async def handle_if_command(self, bot: WechatAPIClient, message: dict):
         """
+        不处理 PLUGIN_HANDLED
+        """
+        if message.get("handled", False):
+            return True
+        """
         '#'开头的都是指令，若是指令则返回True，否则返回False
         """
         command = message.get('command', '')

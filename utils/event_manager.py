@@ -3,6 +3,8 @@ from typing import Callable, Dict, List
 
 from loguru import logger
 
+from utils.const import PLUGIN_HANDLED
+
 
 class EventManager:
     _handlers: Dict[str, List[tuple[Callable, object, int]]] = {}
@@ -38,6 +40,8 @@ class EventManager:
             result = True
             try:
                 result = await handler(*handler_args, **new_kwargs)
+                if PLUGIN_HANDLED == result:
+                    message['handled'] = PLUGIN_HANDLED
             except Exception as e:
                 logger.exception(f"plugin [{instance.__class__.__name__}] invoke plugin error.", e)
 

@@ -15,7 +15,7 @@ from utils.decorators import on_text_message, on_link_share_message
 from utils.plugin_base import PluginBase
 
 
-class DouyinParserError(Exception):
+class MediaParserError(Exception):
     """抖音解析器自定义异常基类"""
     pass
 
@@ -87,11 +87,11 @@ class DouyinParser(PluginBase):
             async with session.get(api, timeout=10) as resp:
                 info = await resp.json()
             if info.get('code', '0') != 1:
-                raise DouyinParserError("mxnzp proxy 请求失败")
+                raise MediaParserError("mxnzp proxy 请求失败")
             info = info.get('data', {}).get('result')
         except Exception as e:
             logger.error(f"mxnzp解析bilibili视频失败：{e}")
-            raise DouyinParserError(e)
+            raise MediaParserError(e)
         finally:
             await session.close()
         return info
@@ -110,7 +110,7 @@ class DouyinParser(PluginBase):
             async with session.get(api, timeout=10) as resp:
                 info = await resp.json()
             if info.get('code', '0') != 1 or not info.get('data', {}).get('list', []):
-                raise DouyinParserError(f"mxnzp 解析bilibili视频失败:{info}")
+                raise MediaParserError(f"mxnzp 解析bilibili视频失败:{info}")
             info = info.get('data')
             data["title"] = info.get("title", '')
             data["name"] = info.get("author", '')
@@ -118,7 +118,7 @@ class DouyinParser(PluginBase):
             data["video"] = info.get("list")[0].get('url')
         except Exception as e:
             logger.error(f"mxnzp解析bilibili视频失败：{e}")
-            raise DouyinParserError(e)
+            raise MediaParserError(e)
         finally:
             await session.close()
         return data
@@ -136,17 +136,17 @@ class DouyinParser(PluginBase):
             async with session.get(api, timeout=10) as resp:
                 info = await resp.json()
             if info.get('code', '0') != 1 or not info.get('data', {}):
-                raise DouyinParserError(f"mxnzp 解析小红书链接失败:{info}")
+                raise MediaParserError(f"mxnzp 解析小红书链接失败:{info}")
             info = info.get('data')
             if not info.get('url', ''):
-                raise DouyinParserError(f"当前小红书链接没有视频~")
+                raise MediaParserError(f"当前小红书链接没有视频~")
             data["cover"] = info.get("cover", '')
             data["title"] = info.get("title", '') if info.get('title', '') else info.get('desc', '')
             data["name"] = info.get("author", '')
             data["video"] = info.get("url")
         except Exception as e:
             logger.error(f"mxnzp解析小红书视频失败：{e}")
-            raise DouyinParserError(e)
+            raise MediaParserError(e)
         finally:
             await session.close()
         return data
@@ -166,11 +166,11 @@ class DouyinParser(PluginBase):
         try:
             json = await self._mxnzp_proxy('https://apih.kfcgw50.me/api/bilibili-video-parse2?url=' + url)
             if not json.get('code') == 0:
-                raise DouyinParserError(f"cyapi 请求bilibili视频失败: {json}")
+                raise MediaParserError(f"cyapi 请求bilibili视频失败: {json}")
             data["video"] = json.get("url")
         except Exception as e:
             logger.warning(f"cyapi 解析bilibili视频失败：{e}")
-            raise DouyinParserError(e)
+            raise MediaParserError(e)
         finally:
             await session.close()
         return data
@@ -194,11 +194,11 @@ class DouyinParser(PluginBase):
             async with session.get(api, params={'url': url}, timeout=10) as resp:
                 json = await resp.json()
             if not json.get('code') == 0:
-                raise DouyinParserError(f"cyapi 请求bilibili视频失败: {json}")
+                raise MediaParserError(f"cyapi 请求bilibili视频失败: {json}")
             data["video"] = json.get("url")
         except Exception as e:
             logger.warning(f"cyapi 解析bilibili视频失败：{e}")
-            raise DouyinParserError(e)
+            raise MediaParserError(e)
         finally:
             await session.close()
         return data
@@ -209,7 +209,7 @@ class DouyinParser(PluginBase):
             json = requests.get("http://www.yx520.ltd/API/dyjx/api.php?url=" + url).json()
         except Exception as e:
             logger.error(f"解析抖音视频失败{e}")
-            raise DouyinParserError("解析抖音视频失败")
+            raise MediaParserError("解析抖音视频失败")
 
         json["video"] = json["media_url"]
         json["title"] = json["song_name"]
@@ -260,7 +260,7 @@ class DouyinParser(PluginBase):
             # 添加解析提示
             msg_args = {
                 'wxid': chat_id,
-                'content': f"检测到{platform}分享链接，尝试解析视频...",
+                'content': f"检测到{platform}分享链接，尝试解析...",
                 'at': [sender] if message['IsGroup'] else []
             }
             await bot.send_text_message(**msg_args)
@@ -277,7 +277,7 @@ class DouyinParser(PluginBase):
                         f"解析视频信息异常:{e}, {e.__traceback__.tb_frame.f_code.co_filename}:{e.__traceback__.tb_lineno}")
 
             if not video_info:
-                raise DouyinParserError("无法获取视频信息")
+                raise MediaParserError("无法获取视频信息")
 
             # 获取视频信息
             video_url = video_info.get('video', '')
@@ -286,7 +286,7 @@ class DouyinParser(PluginBase):
             cover = video_info.get('cover', '')
 
             if not video_url:
-                raise DouyinParserError("无法获取视频地址")
+                raise MediaParserError("无法获取视频地址")
 
             # 发送卡片版消息
             await bot.send_link_message(
@@ -299,13 +299,14 @@ class DouyinParser(PluginBase):
 
             logger.info(f"已发送解析结果: 标题[{title}] 作者[{author}]")
 
-        except DouyinParserError as e:
+        except MediaParserError as e:
             error_msg = str(e) if str(e) else "解析失败"
             logger.error(f"抖音解析失败: {error_msg}")
             if message['IsGroup']:
                 await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}\n", at=[sender])
             else:
                 await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}")
+            return PLUGIN_HANDLED
         except Exception as e:
             error_msg = str(e) if str(e) else "未知错误"
             logger.error(f"抖音解析发生未知错误: {error_msg}")
@@ -315,7 +316,7 @@ class DouyinParser(PluginBase):
                 await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}")
         return PLUGIN_ENDED
 
-    @on_link_share_message
+    @on_link_share_message(priority=80)
     async def handle_share_media_links(self, bot: WechatAPIClient, message: dict):
         if not message.get('url', ''):
             return PLUGIN_PASS

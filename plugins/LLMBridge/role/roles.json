@@ -43,6 +43,15 @@
       "tags": [
         "interesting"
       ]
+    },{
+      "title": "链接文章总结",
+      "description": "你需要对下面的文本进行总结，总结输出包括以下三个部分：\uD83D\uDCD6 一句话总结\nxxx\n\uD83D\uDD11 关键要点,用数字序号列出3-5个文章的核心内容\n\uD83C\uDFF7 标签: #xx #xx\n请使用emoji让你的表达更生动，不需要加粗。",
+      "descn": "你需要对下面的文本进行总结，总结输出包括以下三个部分：\uD83D\uDCD6 一句话总结\nxxx\n\uD83D\uDD11 关键要点,用数字序号列出3-5个文章的核心内容\n\uD83C\uDFF7 标签: #xx #xx\n请使用emoji让你的表达更生动，不需要加粗。",
+      "wrapper": "文本内容:\"%s\"",
+      "remark": "链接文章总结",
+      "tags": [
+        "interesting"
+      ]
     },
     {
       "title": "写教案",
