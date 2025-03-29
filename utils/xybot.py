@@ -43,7 +43,7 @@ class XYBot:
         """处理接收到的消息"""
 
         # 数据库消息数+1先
-        await self.key_db.set("messages", str(int(await self.key_db.get("messages")) + 1))
+        await self.key_db.set("messages", str(int(await self.key_db.get("messages") or 0) + 1))
 
         msg_type = message.get("MsgType")
 

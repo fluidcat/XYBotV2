@@ -165,12 +165,11 @@ async def run_bot():
 
             logger.info("登录账号信息: wxid: {}  昵称: {}  微信号: {}  手机号: {}", bot.wxid, bot.nickname, bot.alias,
                         bot.phone)
-
-            bot_bridge.save_profile(avatar_url=data.get("userInfoExt").get("BigHeadImgUrl"),
+            profile = await bot.get_profile()
+            bot_bridge.save_profile(avatar_url=profile.get("userInfoExt", {}).get("BigHeadImgUrl"),
                                     nickname=data.get("acctSectResp").get("nickName"),
                                     wxid=data.get("acctSectResp").get("userName"),
                                     alias=data.get("acctSectResp").get("alias"))
-
 
         else:  # 已登录
             bot.wxid = wxid

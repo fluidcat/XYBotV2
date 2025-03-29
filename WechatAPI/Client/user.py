@@ -31,7 +31,9 @@ class UserMixin(WechatAPIClientBase):
             json_resp = await response.json()
 
             if json_resp.get("Success"):
-                return json_resp.get("Data").get("userInfo")
+                u_info = json_resp.get("Data").get("userInfo")
+                u_info['userInfoExt'] = json_resp.get("Data").get("userInfoExt")
+                return u_info
             else:
                 self.error_handler(json_resp)
 
