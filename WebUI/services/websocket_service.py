@@ -1,5 +1,3 @@
-import os
-import threading
 import time
 from pathlib import Path
 
@@ -28,20 +26,6 @@ class LogWatcher:
         self.last_emit_time = 0
         self.buffer = []
         self.throttle_interval = 1.0  # 限制发送频率为1秒
-        self._init_watcher()
-
-    def _init_watcher(self):
-        """初始化日志监控器，记录当前日志文件大小作为起始位置"""
-        if isinstance(BOT_LOG_PATH, str):
-            log_path = Path(BOT_LOG_PATH)
-        else:
-            log_path = BOT_LOG_PATH
-
-        if log_path.exists():
-            self.last_position = os.path.getsize(log_path)
-        else:
-            self.last_position = 0
-            logger.warning(f"日志文件不存在: {log_path}")
 
     def start(self):
         """启动日志监控线程"""
@@ -49,8 +33,7 @@ class LogWatcher:
             return
 
         self.running = True
-        self.watch_thread = threading.Thread(target=self._watch_log_file, daemon=True)
-        self.watch_thread.start()
+        logger.add(self._handle_log, enqueue=True)
         logger.info("日志WebSocket监控已启动")
 
     def stop(self):
@@ -99,55 +82,24 @@ class LogWatcher:
         self.buffer = []
         self.last_emit_time = time.time()
 
-    def _watch_log_file(self):
+    def _handle_log(self, log_data):
         """监控日志文件变化并推送新日志到WebSocket连接"""
-        if isinstance(BOT_LOG_PATH, str):
-            log_path = Path(BOT_LOG_PATH)
-        else:
-            log_path = BOT_LOG_PATH
-
-        while self.running:
+        if self.running:
             try:
-                if not log_path.exists():
-                    time.sleep(1)
-                    continue
-
-                current_size = os.path.getsize(log_path)
-
-                # 如果文件大小变小，说明日志被轮转或清空，重置位置
-                if current_size < self.last_position:
-                    self.last_position = 0
-
-                # 有新日志
-                if current_size > self.last_position:
-                    with open(log_path, 'r', encoding='utf-8') as f:
-                        # 移动到上次读取的位置
-                        f.seek(self.last_position)
-                        # 读取新增内容
-                        new_lines = f.readlines()
-                        new_logs = [line.strip() for line in new_lines if line.strip()]
-
-                        if new_logs:
-                            # 添加到缓冲区
-                            self.buffer.extend(new_logs)
-
-                            # 检查是否应该发送
-                            current_time = time.time()
-                            if current_time - self.last_emit_time >= self.throttle_interval:
-                                self._emit_logs()
-
-                    # 更新位置指针
-                    self.last_position = current_size
-
+                new_logs = [str(log_data)]
+                if new_logs:
+                    # 添加到缓冲区
+                    self.buffer.extend(new_logs)
+                    # 检查是否应该发送
+                    current_time = time.time()
+                    if current_time - self.last_emit_time >= self.throttle_interval:
+                        self._emit_logs()
                 # 如果缓冲区有内容且超过了节流时间，发送日志
                 elif self.buffer and time.time() - self.last_emit_time >= self.throttle_interval:
                     self._emit_logs()
 
             except Exception as e:
                 logger.error(f"监控日志文件出错: {str(e)}")
-
-            # 短暂休眠，避免过高CPU占用
-            time.sleep(0.5)
 
     def get_historical_logs(self, n=100):
         """获取历史日志
