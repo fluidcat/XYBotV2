@@ -80,7 +80,7 @@ class News(PluginBase):
             return None
         result = data.get("data", {})
         if topic == 'history':
-            result = list(filter(lambda e: '出生' not in e.get('title'), result))
+            result = list(filter(lambda e: '出生' not in e.get('title') and '逝世' not in e.get('title'), result))
         if not len(result):
             return None
         if size:
