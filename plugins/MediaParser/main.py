@@ -10,6 +10,7 @@ from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from plugins.MediaParser.quanmin_parser import quan_min_factory
+from plugins.tool.parser_video_py.parser import parse_video_share_url, can_parse_video_share_url
 from utils.const import *
 from utils.decorators import on_text_message, on_link_share_message
 from utils.plugin_base import PluginBase
@@ -20,7 +21,7 @@ class MediaParserError(Exception):
     pass
 
 
-class DouyinParser(PluginBase):
+class MediaParser(PluginBase):
     description = "抖音无水印解析插件"
     author = "姜不吃先生"  # 群友太给力了！
     version = "1.0.2"
@@ -44,7 +45,7 @@ class DouyinParser(PluginBase):
                     re.compile(r'https?://[^.]*?\.?xiaohongshu\.com/\S*'),
                     re.compile(r'https?://[^.]*?\.?xhslink\.com/[^\s，]*'),
                 ],
-                "func": self._parse_xhs_mxnzp
+                "func": self._parser_video_py
             },
 
         }
@@ -123,32 +124,17 @@ class DouyinParser(PluginBase):
             await session.close()
         return data
 
-    async def _parse_xhs_mxnzp(self, url: str) -> Dict[str, Any]:
+    async def _parser_video_py(self, url: str) -> Dict[str, Any]:
         data = {}
-        session = aiohttp.ClientSession()
         try:
-            query = {
-                'app_id': 'ompoeutptkuotnet',
-                'app_secret': '7F80NooCtCeUCBKa0yN1w3VdKGKYNk70',
-                'url': base64.b64encode(url.encode("utf-8")).decode("utf-8")
-            }
-            api = 'https://www.mxnzp.com/api/xhs/video?' + '&'.join([f'{k}={v}' for k, v in query.items()])
-            async with session.get(api, timeout=10) as resp:
-                info = await resp.json()
-            if info.get('code', '0') != 1 or not info.get('data', {}):
-                raise MediaParserError(f"mxnzp 解析小红书链接失败:{info}")
-            info = info.get('data')
-            if not info.get('url', ''):
-                raise MediaParserError(f"当前小红书链接没有视频~")
-            data["cover"] = info.get("cover", '')
-            data["title"] = info.get("title", '') if info.get('title', '') else info.get('desc', '')
-            data["name"] = info.get("author", '')
-            data["video"] = info.get("url")
+            info = await parse_video_share_url(url)
+            data["cover"] = info.cover_url
+            data["title"] = info.title
+            data["name"] = info.author.name if info.author else ''
+            data["video"] = info.video_url
         except Exception as e:
-            logger.error(f"mxnzp解析小红书视频失败：{e}")
+            logger.error(f"parser_video_py解析小红书视频失败：{e}")
             raise MediaParserError(e)
-        finally:
-            await session.close()
         return data
 
     async def _parse_bilibili_cyapi_proxy(self, url: str) -> Dict[str, Any]:
@@ -228,6 +214,7 @@ class DouyinParser(PluginBase):
         content = message['Content']
         sender = message['SenderWxid']
         chat_id = message['FromWxid']
+        message['reply_ats'] = [message["SenderWxid"]] if message['IsGroup'] else []
 
         try:
             platform, match, func = '', None, None
@@ -244,10 +231,13 @@ class DouyinParser(PluginBase):
 
             # 尝试匹配 全民解析
             if not match:
+                http_re = re.compile(r'https?://[^\s/?#]+\S*')
                 parser = quan_min_factory.createParser(content)
                 if parser:
-                    http_re = re.compile(r'https?://[^\s/?#]+\S*')
                     platform, match, func = str(parser), http_re.search(content), parser.handle
+                video_parser_source = can_parse_video_share_url(content)
+                if video_parser_source:
+                    platform, match, func = video_parser_source, http_re.search(content), [func, self._parser_video_py] if func else [self._parser_video_py]
 
             if not match:
                 return PLUGIN_PASS
@@ -260,7 +250,7 @@ class DouyinParser(PluginBase):
             # 添加解析提示
             msg_args = {
                 'wxid': chat_id,
-                'content': f"检测到{platform}分享链接，尝试解析...",
+                'content': f"这是一个{platform}分享链接，我试下视频解析",
                 'at': [sender] if message['IsGroup'] else []
             }
             await bot.send_text_message(**msg_args)
@@ -298,23 +288,18 @@ class DouyinParser(PluginBase):
             )
 
             logger.info(f"已发送解析结果: 标题[{title}] 作者[{author}]")
-
+            return PLUGIN_ENDED
         except MediaParserError as e:
             error_msg = str(e) if str(e) else "解析失败"
             logger.error(f"抖音解析失败: {error_msg}")
-            if message['IsGroup']:
-                await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}\n", at=[sender])
-            else:
-                await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}")
+
+            await bot.send_reply_message(message, f"尽力了，我找不到里面的视频")
             return PLUGIN_HANDLED
         except Exception as e:
             error_msg = str(e) if str(e) else "未知错误"
             logger.error(f"抖音解析发生未知错误: {error_msg}")
-            if message['IsGroup']:
-                await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}\n", at=[sender])
-            else:
-                await bot.send_text_message(wxid=chat_id, content=f"视频解析失败: {error_msg}")
-        return PLUGIN_ENDED
+            await bot.send_reply_message(message, f"尽力了，我找不到里面的视频")
+            return PLUGIN_HANDLED
 
     @on_link_share_message(priority=80)
     async def handle_share_media_links(self, bot: WechatAPIClient, message: dict):
