@@ -7,6 +7,7 @@ import tomllib
 import traceback
 from pathlib import Path
 
+import aiohttp
 from loguru import logger
 
 import WechatAPI
@@ -26,6 +27,7 @@ async def run_bot():
     机器人主要运行逻辑
     """
 
+    global session
     try:
         # 设置工作目录
         script_dir = Path(__file__).resolve().parent
@@ -227,8 +229,13 @@ async def run_bot():
         # 先接受堆积消息
         logger.info("处理堆积消息中")
         count = 0
+
+        session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=10),
+            connector=aiohttp.TCPConnector(limit=100, force_close=False)
+        )
         while True:
-            data = await bot.sync_message()
+            data = await bot.sync_message(session)
             data = data.get("AddMsgs")
             if not data:
                 if count > 2:
@@ -244,7 +251,8 @@ async def run_bot():
         logger.success("开始处理消息")
         while True:
             try:
-                data = await bot.sync_message()
+                data = await bot.sync_message(session)
+                # data = {}
             except Exception as e:
                 logger.warning("获取新消息失败 {}", e)
                 await asyncio.sleep(5)
@@ -254,7 +262,7 @@ async def run_bot():
             if data:
                 for message in data:
                     asyncio.create_task(xybot.process_message(message))
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1)
 
     except asyncio.CancelledError:
         await wechat_api_server.stop()
@@ -262,6 +270,9 @@ async def run_bot():
     except Exception as e:
         logger.error(f"机器人运行出错: {e}")
         logger.error(traceback.format_exc())
+    finally:
+        if session:
+            await session.close()
 
 
 async def init_system():
