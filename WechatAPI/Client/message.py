@@ -9,6 +9,7 @@ from typing import Union
 
 import aiohttp
 import pysilk
+from aiohttp import ClientSession
 from loguru import logger
 from pydub import AudioSegment
 from pymediainfo import MediaInfo
@@ -618,7 +619,7 @@ class MessageMixin(WechatAPIClientBase):
             else:
                 self.error_handler(json_resp)
 
-    async def sync_message(self) -> dict:
+    async def sync_messag1e(self) -> dict:
         """同步消息。
 
         Returns:
@@ -642,3 +643,27 @@ class MessageMixin(WechatAPIClientBase):
                 return json_resp.get("Data")
             else:
                 self.error_handler(json_resp)
+
+    async def sync_message(self, session: ClientSession) -> dict:
+        """同步消息。
+
+        Returns:
+            dict: 返回同步到的消息数据
+
+        Raises:
+            UserLoggedOut: 未登录时调用
+            根据error_handler处理错误
+        """
+        if not self.wxid:
+            raise UserLoggedOut("请先登录")
+        if self.stop_sync_message:
+            return {}
+
+        json_param = {"Wxid": self.wxid, "Scene": 0, "Synckey": ""}
+        response = await session.post(f'http://{self.ip}:{self.port}/Sync', json=json_param)
+        json_resp = await response.json()
+
+        if json_resp.get("Success"):
+            return json_resp.get("Data")
+        else:
+            self.error_handler(json_resp)
