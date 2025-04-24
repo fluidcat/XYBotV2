@@ -12,6 +12,7 @@ from plugins.LLMBridge.bridge.context import Context, ContextType
 from plugins.LLMBridge.bridge.reply import ReplyType
 from plugins.LLMBridge.common.const import *
 from plugins.LLMBridge.role import Role
+from utils.const import PLUGIN_ENDED, PLUGIN_PASS
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 
@@ -167,7 +168,10 @@ class LLMBridge(PluginBase):
             return
 
         # 处理角色扮演
-        await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
+        ret = await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
+        # 只处理角色扮演，其他的文本交给playwright插件
+        if ret == "no_role_play":
+            return PLUGIN_PASS
 
         query = str(message["Content"]).strip()
         context = Context(ContextType.TEXT, query)
@@ -188,7 +192,10 @@ class LLMBridge(PluginBase):
             return
 
         # 处理角色扮演
-        await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
+        ret = await self.role.handle_role_play(bot, message, self.generateSessionId(bot, message))
+        # 只处理角色扮演，其他的文本交给playwright插件
+        if ret == "no_role_play":
+            return PLUGIN_PASS
 
         query = query.removeprefix(f'@{bot.nickname}\u2005').removesuffix('\u2005').removesuffix(f'@{bot.nickname}')
         context = Context(ContextType.TEXT, query)
@@ -207,7 +214,7 @@ class LLMBridge(PluginBase):
             session_id = f"{message.get('FromWxid')}@{message.get('SenderWxid')}"
         return session_id
 
-    @on_voice_message(priority=20)
+    # @on_voice_message(priority=20)
     async def handle_voice(self, bot: WechatAPIClient, message: dict):
 
         # if message["IsGroup"]:
@@ -239,7 +246,7 @@ class LLMBridge(PluginBase):
             await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
         return False
 
-    @on_image_message(priority=20)
+    # @on_image_message(priority=20)
     async def handle_image(self, bot: WechatAPIClient, message: dict):
         if not self.check(bot, message):
             return
@@ -249,7 +256,7 @@ class LLMBridge(PluginBase):
 
         return False
 
-    @on_video_message(priority=20)
+    # @on_video_message(priority=20)
     async def handle_video(self, bot: WechatAPIClient, message: dict):
         if not self.check(bot, message):
             return
@@ -259,7 +266,7 @@ class LLMBridge(PluginBase):
 
         return False
 
-    @on_file_message(priority=20)
+    # @on_file_message(priority=20)
     async def handle_file(self, bot: WechatAPIClient, message: dict):
         if not self.check(bot, message):
             return
