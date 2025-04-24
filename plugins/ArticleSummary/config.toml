@@ -1,6 +1,6 @@
 [ArticleSummary]
 # 是否启用插件
-enable = true
+enable = false
 max_words = 8000
 jina_reader_base = "https://r.jina.ai"
 white_url_list = []
