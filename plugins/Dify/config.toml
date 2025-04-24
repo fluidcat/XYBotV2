@@ -1,0 +1,20 @@
+[Dify]
+enable = true
+
+api-key = "app-gMjQeWh4sdv24mWXMyr2yb0j" # Dify的API Key
+base-url = "https://api.dify.ai/v1" #Dify API接口base url
+
+commands = ["ai", "dify", "聊天", "AI"]
+command-tip = """
+💬AI聊天指令：
+聊天 请求内容
+"""
+
+price = 0 # 用一次扣积分，如果0则不扣
+admin_ignore = true #admin是否忽略扣除
+whitelist_ignore = true #白名单是否忽略扣除
+
+# Http代理设置
+# 格式: http://用户名:密码@代理地址:代理端口
+# 例如：http://127.0.0.1:7890
+http-proxy = ""
