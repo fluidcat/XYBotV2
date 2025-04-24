@@ -414,7 +414,7 @@ class XYBot:
                     quote_appmsg.find("directshare"), ET.Element) else 0
 
         except Exception as e:
-            logger.error(f"解析引用消息失败: {e}")
+            logger.error(f"解析引用消息失败: {e}, msg: {message['Content']}")
             return
 
         message["Content"] = text
@@ -489,10 +489,12 @@ class XYBot:
         message["Filename"] = filename
         message["FileExtend"] = file_extend
 
-        logger.info("收到文件消息: 消息ID:{} 来自:{} 发送人:{} XML:{}",
+        logger.info("收到文件消息: 消息ID:{} 来自:{} 发送人:{} 文件名:{} 文件类型:{} XML:{}",
                     message["MsgId"],
                     message["FromWxid"],
                     message["SenderWxid"],
+                    message["Filename"],
+                    message["FileExtend"],
                     message["Content"])
 
         await self.msg_db.save_message(
