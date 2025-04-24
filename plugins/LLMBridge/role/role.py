@@ -132,7 +132,7 @@ class Role:
             await channel.send_reply_message(message, help_text)
             return
         elif session_id not in self.roleplays:
-            return
+            return "no_role_play"
 
         content = message['Content']
         # logger.debug("[Role] on_handle_context. content: %s" % content)
