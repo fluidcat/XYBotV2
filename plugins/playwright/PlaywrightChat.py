@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -92,9 +93,8 @@ class BrowserPage:
         """导航到指定URL"""
         await self.page.set_viewport_size({"width": 1366, "height": 800})
         await self.page.goto(url, timeout=timeout, wait_until="networkidle")
-        await self.page.wait_for_timeout(5000)
         await self.page.add_style_tag(content="* { animation: none !important; transition: none !important; }")
-        await self.page.wait_for_timeout(1000)
+        await self.page.wait_for_timeout(3000)
 
     async def ready(self):
         if self.conversation_id and not self.is_ready:
@@ -163,6 +163,11 @@ class BrowserPage:
     async def sendMessage(self, msg: str):
         logger.info(f"PlaywrightChat 发送消息：{msg}")
         await self.page.get_by_placeholder('给 DeepSeek 发消息').fill(msg)
+        await self.page.wait_for_function("""()=>{
+            selector = '[class*="MsgInput_input_main"] >:nth-child(3) >:nth-child(3)' 
+            const button = document.querySelector(selector);
+            return !button?.getAttribute('class')?.includes('MsgInput_disabled');
+        }""", polling=500, timeout=1 * 60 * 1000)
         await self.page.locator('[class*="MsgInput_input_main"] >:nth-child(3) >:nth-child(3) svg').click()
         await self.page.wait_for_timeout(500)
 
@@ -170,7 +175,10 @@ class BrowserPage:
         logger.info(f"PlaywrightChat 等待消息中...")
         await self.page.locator('[class*="TurnCard_operation"] >[class*="TurnCard_left_opts"]') \
             .wait_for(timeout=5 * 60 * 1000)
-        return await self.page.locator("[class^=TurnCard_turn_container] .markdown-body").first.text_content()
+        selector = '[class^=TurnCard_turn_container] .markdown-body .annotation_num'
+        await self.page.evaluate(f"()=>document.querySelectorAll('{selector}').forEach(el => el.remove());")
+        answer = await self.page.locator("[class^=TurnCard_turn_container] .markdown-body").first.text_content()
+        return answer.replace(" 。", "。")
 
     async def getMarkdownMessage(self, conversation_id: str):
         await self.page.locator('[class*="TurnCard_operation"] >[class*="TurnCard_left_opts"]') \
@@ -240,11 +248,32 @@ class BrowserPage:
 
         await file_chooser.set_files(file)
 
+    async def upload_image(self, image_byte):
+        kind = filetype.guess(image_byte)
+        image_name = uuid.uuid4().hex + '.' + kind.extension if kind else 'jpeg'
+        logger.info(f"PlaywrightChat 上传图片：{image_name}")
+
+        file = {
+            "name": image_name,
+            "mimeType": kind.mime if kind else "application/octet-stream",
+            "buffer": image_byte
+        }
+
+        # 监听文件选择器弹出
+        async with self.page.expect_file_chooser() as fc_info:
+            await self.page.locator('[class*="MsgInput_input_main"] >:nth-child(3) >:nth-child(1) svg').click()
+        file_chooser = await fc_info.value
+
+        await file_chooser.set_files(file)
+
+    async def remove_thumb(self):
+        if await self.page.locator('[class*="FileUpload_thumb_ctn"] span svg').count() == 1:
+            await self.page.locator('[class*="FileUpload_thumb_ctn"] span svg').click()
 
 async def main():
-    cdp_url = "ws://192.168.2.2:3000"
+    # cdp_url = "ws://192.168.2.2:3000"
     # cdp_url = "ws://127.0.0.1:3000"
-    # cdp_url = "http://127.0.0.1:9222"
+    cdp_url = "http://127.0.0.1:9222"
     async with BrowserManager(cdp_url=cdp_url) as browser_manager:
         # 创建第一个页面并登录
         wxid = "wxid_23232"

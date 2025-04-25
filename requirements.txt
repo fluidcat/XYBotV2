@@ -53,3 +53,9 @@ google-generativeai
 tiktoken>=0.3.2 # openai calculate token
 cachetools~=5.5.2
 pyttsx3~=2.98
+
+fake_useragent==1.5.1
+httpx==0.28.1
+parsel==1.9.0
+PyYAML==6.0.2
+playwright

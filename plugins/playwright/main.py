@@ -1,11 +1,11 @@
-from typing import Optional
+import asyncio
+from typing import Dict
 
-import filetype
 import jieba
 from loguru import logger
 
 from WechatAPI import WechatAPIClient
-from plugins.playwright.PlaywrightChat import BrowserManager, BrowserPage
+from plugins.playwright.PlaywrightChat import BrowserManager
 from utils.const import PLUGIN_ENDED
 from utils.decorators import *
 from utils.plugin_base import PluginBase
@@ -16,12 +16,7 @@ class Playwright(PluginBase):
     author = "fluidcat"
     version = "1.1.0"
 
-    # todo
-    # 1、删除记忆
-    # 2、上传图片
-    # 3、上传文件
-    # 4、上传图片
-    # 5、生成语音
+    # todo 生成语音
 
     def __init__(self):
         super().__init__()
@@ -30,10 +25,11 @@ class Playwright(PluginBase):
         config = plugin_config["Playwright"]
         self.enable = config["enable"]
 
-        self.cdp_url = "ws://192.168.2.2:3000"
-        # self.cdp_url = "http://127.0.0.1:9222"
+        self.cdp_url = config["cdp_url"]
         # self.cdp_url = "ws://127.0.0.1:3000"
         self.browser = BrowserManager(cdp_url=self.cdp_url)
+        # 全局会话信号量字典，每个 conversation_id 对应独立的 Semaphore(1)
+        self._semaphores: Dict[str, asyncio.Semaphore] = {}
 
     async def async_init(self):
         await self.browser.__aenter__()
@@ -74,21 +70,53 @@ class Playwright(PluginBase):
                 return "验证码为空，登录失败"
 
     async def handle_command(self, bot: WechatAPIClient, message: dict):
-        page: Optional[BrowserPage] = None
+        cmd: str = message.get('command')
+        commands = ['删除记忆', ['使用聊天模型', '使用思考模型'], ['不联网', '联网搜索']]
+        if not [c for c in commands if cmd == c or (isinstance(c, list) and cmd in c)]:
+            return
+
+        conversation_id = message['FromWxid']
+        page = await self.get_page(bot, message)
+        if not page:
+            return True
+
         try:
-            cmd = message.get('command')
-            if cmd == '删除记忆':
-                conversation_id = message['FromWxid']
-                page = await self.browser.get_or_create_page(conversation_id)
-                if page:
-                    await page.delete_memory()
-                    await self.browser.close(conversation_id)
+            if cmd == commands[0]:
+                await page.delete_memory()
+                await self.browser.close(conversation_id)
                 await bot.send_reply_message(message, "记忆已删除")
-                return True
+
+            elif cmd in commands[1]:
+                model = 'deepseekV3' if cmd == '使用聊天模型' else 'deepseekR1'
+                await page.changeModel(model)
+                await bot.send_reply_message(message, f"已{cmd}")
+
+            elif cmd in commands[2]:
+                search = 'super_search' if cmd == '联网搜索' else 'no_search'
+                await page.changeSearch(search)
+                await bot.send_reply_message(message, f"已{cmd}")
+
         except Exception as e:
             logger.exception("handle_command error.", e)
-            if page:
-                await page.page.screenshot(path="handle_command_error.png")
+        return True
+
+    async def get_page(self, bot: WechatAPIClient, message: dict):
+        try_count = 0
+        while True:
+            if try_count >= 5:
+                return
+            try:
+                conversation_id = message['FromWxid']
+                browser_page = await self.browser.get_or_create_page(conversation_id)
+                if not await self.check_login(conversation_id, bot, message):
+                    # 未登录
+                    return
+                else:
+                    await browser_page.ready()
+                return browser_page
+            except Exception as e:
+                try_count += 1
+                logger.error(f"get_page error, retry: {try_count}")
 
     @on_text_message(priority=29)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
@@ -97,45 +125,93 @@ class Playwright(PluginBase):
         if await self.handle_command(bot, message):
             return PLUGIN_ENDED
 
-        query = message['Content']
+        query = f"你是友好的助手，是叫[圆脸]的人的替身。1、根据对话历史和当前问题判断，涉及和老婆感情问题时需要表现出你很爱你的老婆；2、如果用户问题不涉及感情问题时你是一个没有感情的分析处理助手；3、回复问题时不要出现前面的设定逻辑\n用户对你说：{message['Content']}"
+        # query = message['Content']
         conversation_id = message['FromWxid']
+        # 获取或创建会话专属的信号量（保证同一会话串行）
+        sem = self._semaphores.setdefault(conversation_id, asyncio.Semaphore(1))
+        async with sem:
+            try:
+                if not (browser_page := await self.get_page(bot, message)):
+                    return PLUGIN_ENDED
 
-        try:
-            browser_page = await self.browser.get_or_create_page(conversation_id)
-            if not await self.check_login(conversation_id, bot, message):
-                return
-            else:
-                await browser_page.ready()
+                await browser_page.sendMessage(query)
+                answer = await browser_page.getMessage()
 
-            await browser_page.sendMessage(query)
-            answer = await browser_page.getMessage()
+                await bot.send_reply_message(message, answer)
+            except Exception as e:
+                logger.exception('handle error', e)
+                await self.browser.close(conversation_id)
 
-            await bot.send_reply_message(message, answer)
-        except Exception as e:
-            logger.exception('handle error', e)
-            await self.browser.close(conversation_id)
+        return PLUGIN_ENDED
 
     @on_at_message(priority=19)
     async def handle_at(self, bot: WechatAPIClient, message: dict):
         return await self.handle_text(bot, message)
 
-    # @on_file_message(priority=20)
+    @on_file_message(priority=20)
     async def handle_file(self, bot: WechatAPIClient, message: dict):
         conversation_id = message['FromWxid']
         try:
-            browser_page = await self.browser.get_or_create_page(conversation_id)
-            if not await self.check_login(conversation_id, bot, message):
-                return
-            else:
-                await browser_page.ready()
+            if not (browser_page := await self.get_page(bot, message)):
+                return PLUGIN_ENDED
 
             file_byte = bot.base64_to_byte(message["File"])
             await browser_page.upload_file(message['Filename'], file_byte)
 
+            await browser_page.changeSearch('no_search')
             await browser_page.sendMessage("总结一下这个文件的内容")
             answer = await browser_page.getMessage()
 
             await bot.send_reply_message(message, answer)
+
+            await browser_page.changeSearch('super_search')
+            await browser_page.remove_thumb()
+
         except Exception as e:
             logger.exception('handle error', e)
             await self.browser.close(conversation_id)
+        return PLUGIN_ENDED
+
+    @on_image_message(priority=21)
+    async def handle_image(self, bot: WechatAPIClient, message: dict):
+        conversation_id = message['FromWxid']
+        try:
+            if not (browser_page := await self.get_page(bot, message)):
+                return PLUGIN_ENDED
+
+            image = bot.base64_to_byte(message["Content"])
+            await browser_page.upload_image(image)
+            # await browser_page.changeSearch('no_search')
+            await browser_page.sendMessage("分析一下图片")
+            answer = await browser_page.getMessage()
+
+            await bot.send_reply_message(message, answer)
+
+            # await browser_page.changeSearch('super_search')
+            await browser_page.remove_thumb()
+
+        except Exception as e:
+            logger.exception('handle error', e)
+            await self.browser.close(conversation_id)
+        return PLUGIN_ENDED
+
+    def generate_voice_query(self, query):
+        return query + """\n按照要求回复：
+            1、文本整理 
+            - 回复的文本句子，严格遵守字数90~100字要求（important！！！！！！） 
+            - 回复中超过100字的句子，在不改变原来语意语境情况下，分割成两个或多个句子 
+            - 回复中不超过90字的句子，在遵守“rule 2”的前提下 和后续连个或多个句子合并在一起 
+            - 回复中一个句子单独一行，直接输出整理好的文字，不用添加其他的说明  
+            
+            2、注意文本规范化与清晰性 
+            - 避免歧义：多音字、缩写、数字等需明确标注。例如，“2024年”应写为“二零二四年”避免读成“两千零二十四”  
+            - 特殊符号处理：如“&”应写为“和”，“℃”改为“摄氏度”，确保合成语音准确  
+            - 标点使用：合理使用逗号、句号控制停顿节奏，避免长句导致合成语音喘不过气  
+            
+            3、语言结构与流畅性 
+            - 短句优先：拆解复杂句式。例如，“尽管天气不好，我们仍决定出发”改为“天气不好。但我们决定出发。”  
+            - 序号词使用：如果内容是列表的形式，使用“第一、第二、第三"、“首先、然后、再者、接着、最后”类似的词，让语音更清晰 
+            - 避免生僻词：技术术语或专有名词需提供拼音或替代读法（如“GPT”输出“G-P-T”）  
+            - 多语言混合：中英文混用时标注语言标签，防止发音错误
+            """
