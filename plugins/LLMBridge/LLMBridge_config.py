@@ -278,7 +278,7 @@ def load_config():
         config_path = "plugins/LLMBridge/config-template.json"
 
     config_str = read_file(config_path)
-    logger.debug("[INIT] config str: {}".format(drag_sensitive(config_str)))
+    # logger.debug("[INIT] config str: {}".format(drag_sensitive(config_str)))
 
     # 将json字符串反序列化为dict类型
     config = Config(json.loads(config_str))
@@ -303,7 +303,7 @@ def load_config():
         logger.setLevel(logging.DEBUG)
         logger.debug("[INIT] set log level to DEBUG")
 
-    logger.info("[INIT] load config: {}".format(drag_sensitive(config)))
+    # logger.info("[INIT] load config: {}".format(drag_sensitive(config)))
 
     config.load_user_datas()
 
