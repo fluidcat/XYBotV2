@@ -1,5 +1,6 @@
 import asyncio
 import json
+import mimetypes
 import re
 import tomllib
 import traceback
@@ -168,7 +169,7 @@ class Dify(PluginBase):
 
         return False
 
-    @on_file_message(priority=20)
+    # @on_file_message(priority=20)
     async def handle_file(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
             return
@@ -225,7 +226,6 @@ class Dify(PluginBase):
                         elif line.startswith("data: "):  # 脑瘫吧，为什么前面要加 "data: " ？？？
                             line = line[6:]
 
-
                         try:
                             resp_json = json.loads(line)
                         except json.decoder.JSONDecodeError:
@@ -272,8 +272,11 @@ class Dify(PluginBase):
         headers = {"Authorization": f"Bearer {self.api_key}"}
 
         # user multipart/form-data
-        kind = filetype.guess(file)
-        if kind:
+
+        if message and (mime_types := mimetypes.guess_type(message["Filename"])):
+            mime_type, _ = mime_types
+            filename, content_type = message["Filename"], mime_type
+        elif kind := filetype.guess(file):
             filename, content_type = kind.extension, kind.mime
         else:
             message = message or {}
