@@ -6,7 +6,7 @@ from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from plugins.playwright.PlaywrightChat import BrowserManager
-from utils.const import PLUGIN_ENDED
+from utils.const import PLUGIN_ENDED, PLUGIN_EXEC_FINISHED, PLUGIN_FALLBACK
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 
@@ -76,11 +76,11 @@ class Playwright(PluginBase):
             return
 
         conversation_id = message['FromWxid']
-        page = await self.get_page(bot, message)
-        if not page:
-            return True
-
         try:
+            page = await self.get_page(bot, message)
+            if not page:
+                return PLUGIN_FALLBACK
+
             if cmd == commands[0]:
                 await page.delete_memory()
                 await self.browser.close(conversation_id)
@@ -98,7 +98,7 @@ class Playwright(PluginBase):
 
         except Exception as e:
             logger.exception("handle_command error.", e)
-        return True
+        return PLUGIN_EXEC_FINISHED
 
     async def get_page(self, bot: WechatAPIClient, message: dict):
         try_count = 0
@@ -133,7 +133,7 @@ class Playwright(PluginBase):
         async with sem:
             try:
                 if not (browser_page := await self.get_page(bot, message)):
-                    return PLUGIN_ENDED
+                    return PLUGIN_FALLBACK
 
                 await browser_page.sendMessage(query)
                 answer = await browser_page.getMessage()
@@ -154,7 +154,7 @@ class Playwright(PluginBase):
         conversation_id = message['FromWxid']
         try:
             if not (browser_page := await self.get_page(bot, message)):
-                return PLUGIN_ENDED
+                return PLUGIN_FALLBACK
 
             file_byte = bot.base64_to_byte(message["File"])
             await browser_page.upload_file(message['Filename'], file_byte)
@@ -178,7 +178,7 @@ class Playwright(PluginBase):
         conversation_id = message['FromWxid']
         try:
             if not (browser_page := await self.get_page(bot, message)):
-                return PLUGIN_ENDED
+                return PLUGIN_FALLBACK
 
             image = bot.base64_to_byte(message["Content"])
             await browser_page.upload_image(image)
