@@ -118,7 +118,7 @@ class Playwright(PluginBase):
                 try_count += 1
                 logger.exception(f"get_page error, retry: {try_count}", e)
 
-    @on_text_message(priority=29)
+    @on_text_message(priority=40)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         message['reply_ats'] = [message['SenderWxid']] if message['IsGroup'] else []
 
@@ -145,11 +145,11 @@ class Playwright(PluginBase):
 
         return PLUGIN_ENDED
 
-    @on_at_message(priority=19)
+    @on_at_message(priority=40)
     async def handle_at(self, bot: WechatAPIClient, message: dict):
         return await self.handle_text(bot, message)
 
-    @on_file_message(priority=20)
+    @on_file_message(priority=40)
     async def handle_file(self, bot: WechatAPIClient, message: dict):
         conversation_id = message['FromWxid']
         try:
@@ -173,7 +173,7 @@ class Playwright(PluginBase):
             await self.browser.close(conversation_id)
         return PLUGIN_ENDED
 
-    @on_image_message(priority=21)
+    @on_image_message(priority=40)
     async def handle_image(self, bot: WechatAPIClient, message: dict):
         conversation_id = message['FromWxid']
         try:

@@ -53,7 +53,7 @@ class Dify(PluginBase):
 
         self.db = XYBotDB()
 
-    # @on_text_message(priority=20)
+    @on_text_message(priority=20)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
             return
@@ -74,7 +74,7 @@ class Dify(PluginBase):
             await self.dify(bot, message, message["Content"])
         return False
 
-    # @on_at_message(priority=20)
+    @on_at_message(priority=20)
     async def handle_at(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
             return

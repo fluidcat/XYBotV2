@@ -180,7 +180,7 @@ class LLMBridge(PluginBase):
         reply = self.bridge.fetch_reply_content(query, context)
         await bot.send_reply_message(message, reply.content)
 
-    @on_at_message(priority=20)
+    @on_at_message(priority=30)
     async def handle_at(self, bot: WechatAPIClient, message: dict):
         # 判断并执行指令
         if await self.handle_if_command(bot, message):
@@ -246,32 +246,3 @@ class LLMBridge(PluginBase):
             await bot.send_reply_message(message, f'我听到：{result.content}\n\n' + reply.content)
         return False
 
-    # @on_image_message(priority=20)
-    async def handle_image(self, bot: WechatAPIClient, message: dict):
-        if not self.check(bot, message):
-            return
-
-        if message["IsGroup"]:
-            return
-
-        return False
-
-    # @on_video_message(priority=20)
-    async def handle_video(self, bot: WechatAPIClient, message: dict):
-        if not self.check(bot, message):
-            return
-
-        if message["IsGroup"]:
-            return
-
-        return False
-
-    # @on_file_message(priority=20)
-    async def handle_file(self, bot: WechatAPIClient, message: dict):
-        if not self.check(bot, message):
-            return
-
-        if message["IsGroup"]:
-            return
-
-        return False
