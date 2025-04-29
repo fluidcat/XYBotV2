@@ -58,11 +58,10 @@ class BrowserManager:
 
         page.on('close', handle_close)
 
+        logger.info(f"PlaywrightChat 创建新会话页: {conversation_id}")
         browser_page = BrowserPage(page)
         browser_page.conversation_id = conversation_id
         await browser_page.navigate(url)
-
-        logger.info(f"PlaywrightChat 创建新会话页: {conversation_id}")
 
         self.conversation_page[conversation_id] = browser_page
         return browser_page
@@ -73,8 +72,8 @@ class BrowserManager:
             page = self.conversation_page[conversation_id]
             if page and not page.page.is_closed():
                 await page.close()
+                logger.info(f"PlaywrightChat 清理会话页: {conversation_id}")
             self.conversation_page.pop(conversation_id, None)
-            logger.info(f"PlaywrightChat 清理会话页: {conversation_id}")
 
     async def close(self, conversation_id: str):
         """主动关闭指定会话页面"""
@@ -136,14 +135,15 @@ class BrowserPage:
         await self.open_conversation_tab()
         if not await self.has_conversation(conversation_id):
             logger.info(f"PlaywrightChat 新会话初始化，命名会话：{conversation_id}")
-            await self.page.get_by_alt_text('Deepseek').click()
+            # await self.page.get_by_alt_text('新对话').click()
+            await self.page.keyboard.press('Control+K')
             await self.changeModel(model)
             await self.changeSearch(search_type)
             await self.sendMessage(f"{conversation_id}")
             await self.getMessage()
         else:
             logger.info(f"PlaywrightChat 切换到会话：conversation_id={conversation_id}")
-            await self.page.locator('[class*="page_conversation_list_scroller"]').get_by_text(
+            await self.page.locator('#history-container-ID').get_by_text(
                 conversation_id).first.click()
 
     async def open_conversation_tab(self):
@@ -156,13 +156,13 @@ class BrowserPage:
             # await self.page.locator('#dark-mode-container [class^=page_ellipsis_ctl] svg').first.click()
 
     async def has_conversation(self, conversation_id: str):
-        await self.page.locator('[class*="page_conversation_list_scroller"]').wait_for()
-        c = await self.page.locator('[class*="page_conversation_list_scroller"]').get_by_text(conversation_id).count()
+        await self.page.locator('#history-container-ID').wait_for()
+        c = await self.page.locator('#history-container-ID').get_by_text(conversation_id).count()
         return c > 0
 
     async def sendMessage(self, msg: str):
         logger.info(f"PlaywrightChat 发送消息：{msg}")
-        await self.page.get_by_placeholder('给 DeepSeek 发消息').fill(msg)
+        await self.page.locator('[class*=MsgInput_input_main] [class*=MsgInput_input_textarea]').fill(msg)
         await self.page.wait_for_function("""()=>{
             selector = '[class*="MsgInput_input_main"] >:nth-child(3) >:nth-child(3)' 
             const button = document.querySelector(selector);
@@ -214,7 +214,7 @@ class BrowserPage:
         if not model or model == 'deepseekV3':
             await self.page.get_by_role("tooltip").get_by_text('DeepSeek V3').click()
         else:
-            await self.page.get_by_role("tooltip").get_by_text('深度思考R1').click()
+            await self.page.get_by_role("tooltip").get_by_text('DeepSeek R1').click()
 
     async def get_content(self) -> str:
         """获取页面内容"""
@@ -226,9 +226,10 @@ class BrowserPage:
 
     async def delete_memory(self):
         await self.open_conversation_tab()
-        await self.page.locator(
-            '#scrollableDiv [class*=ConverCard_active] [class^=ConverCard_opt_btn_container]').first.click()
-        await self.page.get_by_text('删除此对话').click()
+        selector = '[class*=page_conversation_list] [class*=ConversationItem_active] [class^=ConversationItem_opt_btn_]'
+        await self.page.evaluate(f"()=>document.querySelector('{selector}').style.display = 'block'")
+        await self.page.locator(selector).first.click()
+        await self.page.locator('.ant-popover').get_by_text('删除', exact=True).filter(visible=True).click()
 
     async def upload_file(self, file_name, file_byte):
         logger.info(f"PlaywrightChat 上传文件：{file_name}")

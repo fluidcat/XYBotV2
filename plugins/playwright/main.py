@@ -116,7 +116,7 @@ class Playwright(PluginBase):
                 return browser_page
             except Exception as e:
                 try_count += 1
-                logger.error(f"get_page error, retry: {try_count}")
+                logger.exception(f"get_page error, retry: {try_count}", e)
 
     @on_text_message(priority=29)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
