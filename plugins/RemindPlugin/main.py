@@ -1,11 +1,14 @@
 import json
+import mimetypes
 import os  # 确保导入os模块
+import textwrap
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+import aiohttp
+import filetype
 from apscheduler.triggers.date import DateTrigger
-from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from database.user_schedule_task import UserScheduleTask, UserScheduleTaskDB
@@ -38,9 +41,10 @@ class RemindPlugin(PluginBase):
 
         self.ai_bot = create_bot(const.ZHIPU_AI)
         self.model = 'glm-4-flash'
-        self.prompt = "你是智能定时任务生成助手，根据用户提供的任务描述、时间要求，自动生成一个可执行的定时任务方案，现在时间是：" \
-                      + f"{str(datetime.now().date())}。" \
-                      + """"
+        self.prompt = (
+                "你是智能定时任务生成助手，根据用户提供的任务描述、时间要求，自动生成一个可执行的定时任务方案，现在时间是："
+                + f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}。'
+                + textwrap.dedent("""
                         1、如果用户输入内容不是定时任务，则定时任务为空：{}
                         2、如果用户输入内容是定时的任务相关，则要求生成定时任务：
                         - 判断是重复任务还是一次性任务
@@ -61,7 +65,8 @@ class RemindPlugin(PluginBase):
                         
                         输入：每天上午10点开会，请务必参加。
                         输出：{"task":"开会","msg":"记得开会哦","task_type":"repeat","exec_expression":"0 0 7 * * *","tip":"OK，我将在每天早上10点提醒开会"}
-                        """
+                        """)
+        )
 
         self.role_play = RolePlay(self.ai_bot, 'remind_session', self.prompt)
 
@@ -91,7 +96,19 @@ class RemindPlugin(PluginBase):
                 id=str(task.task_id)
             )
 
-    @on_text_message(priority=99)
+    @on_at_message(priority=50)
+    async def handle_at(self, bot: WechatAPIClient, message: dict):
+        return self.handle_text(bot, message)
+
+    @on_voice_message(priority=50)
+    async def handle_voice(self, bot: WechatAPIClient, message: dict):
+        text = await self.audi_ocr(bot, message)
+        if text:
+            message['Content'] = text
+            return await self.handle_text(bot, message)
+        return PLUGIN_PASS
+
+    @on_text_message(priority=50)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         if message.get('command', '').startswith('#') or len(message["Content"]) <= 5:
             return PLUGIN_PASS
@@ -139,7 +156,7 @@ class RemindPlugin(PluginBase):
     async def send_reminder(self, bot: WechatAPIClient, task: UserScheduleTask):
         """发送提醒消息"""
         at = [task.user_id] if task.from_id != task.user_id else []
-        await bot.send_text_message(task.from_id, task.task_msg, at)
+        await bot.send_at_message(task.from_id, task.task_msg, at)
         # 更新任务状态
         task.task_last_exec_time = datetime.now()
         # 获取当前任务的触发器
@@ -168,6 +185,49 @@ class RemindPlugin(PluginBase):
             task.task_next_exec_time = None
 
         await self.task_db.save_task(task)
+
+    async def audi_ocr(self, bot: WechatAPIClient, message: dict) -> str:
+        upload_file_id = await self.upload_file(message["FromWxid"], message["Content"])
+
+        url = 'https://api.dify.ai/v1/workflows/run'
+        headers = {"Authorization": f"Bearer app-WOBX22g8QogVRSfjOZnqAaLa", "Content-Type": "application/json"}
+        payload = json.dumps({
+            "inputs": {"audio": {"type": "audio", "transfer_method": "local_file", "upload_file_id": upload_file_id}},
+            "user": message["FromWxid"],
+            "response_mode": "blocking",
+            "files": [],
+        })
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=url, headers=headers, data=payload) as resp:
+                if resp.status == 200:
+                    ocr_ret = await resp.json()
+                else:
+                    return ''
+        return ocr_ret.get('data', {}).get('outputs', {}).get('text', '')
+
+    async def upload_file(self, user: str, file: bytes, message: dict = None):
+        headers = {"Authorization": f"Bearer app-WOBX22g8QogVRSfjOZnqAaLa"}
+
+        if message and (mime_types := mimetypes.guess_type(message["Filename"])):
+            mime_type, _ = mime_types
+            filename, content_type = message["Filename"], mime_type
+        elif kind := filetype.guess(file):
+            filename, content_type = kind.extension, kind.mime
+        else:
+            message = message or {}
+            filename, content_type = message["Filename"], "application/octet-stream"
+
+        formdata = aiohttp.FormData()
+        formdata.add_field("user", user)
+        formdata.add_field("file", file, filename=filename, content_type=content_type)
+
+        url = "https://api.dify.ai/v1/files/upload"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, data=formdata) as resp:
+                resp_json = await resp.json()
+
+        return resp_json.get("id", "")
 
 
 class MyCronTrigger(CronTrigger):
