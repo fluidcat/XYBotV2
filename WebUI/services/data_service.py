@@ -33,6 +33,7 @@ class DataService(metaclass=Singleton):
         self._cache = {}
         self._last_update = 0
         self._update_interval = 5  # 更新间隔（秒）
+        self._last_user_sync_time = 0  # 上次同步用户数量的时间
         # 确保异步初始化被执行
         try:
             loop = asyncio.get_event_loop()
@@ -67,11 +68,80 @@ class DataService(metaclass=Singleton):
         """
         获取机器人核心指标
         """
+        # 先刷新缓存数据再返回
+        self._refresh_cache_data()
+        
         return {
             'messages': self._cache.get('messages', 0),
             'users': self._cache.get('users', 0),
             'uptime': self._get_uptime_formatted()
         }
+        
+    def _refresh_cache_data(self):
+        """
+        刷新缓存数据
+        """
+        current_time = time.time()
+        # 如果距离上次更新时间超过了更新间隔，则更新缓存
+        if current_time - self._last_update > self._update_interval:
+            try:
+                # 获取事件循环
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                # 直接同步执行异步操作
+                if loop.is_running():
+                    # 如果循环正在运行，使用Future同步等待结果
+                    messages = asyncio.run_coroutine_threadsafe(bot_bridge.get_message_count(), loop).result(5)
+                    users = asyncio.run_coroutine_threadsafe(bot_bridge.get_user_count(), loop).result(5)
+                else:
+                    # 否则直接执行到完成
+                    messages = loop.run_until_complete(bot_bridge.get_message_count())
+                    users = loop.run_until_complete(bot_bridge.get_user_count())
+                
+                # 同步XYBotDB的真实用户数量到KeyvalDB (每10分钟执行一次)
+                ten_minutes = 600  # 10分钟的秒数
+                if current_time - self._last_user_sync_time > ten_minutes:
+                    try:
+                        # 导入XYBotDB以获取真实用户数量
+                        from database.XYBotDB import XYBotDB
+                        db = XYBotDB()
+                        real_users_count = db.get_users_count()
+                        
+                        # 只有当实际用户数大于当前计数时才更新
+                        if real_users_count > users:
+                            if loop.is_running():
+                                asyncio.run_coroutine_threadsafe(
+                                    bot_bridge._db.set("bot:stats:user_count", str(real_users_count)), 
+                                    loop
+                                ).result(5)
+                                users = real_users_count
+                            else:
+                                loop.run_until_complete(
+                                    bot_bridge._db.set("bot:stats:user_count", str(real_users_count))
+                                )
+                                users = real_users_count
+                            logger.info(f"已从XYBotDB同步用户数量: {real_users_count}")
+                        
+                        self._last_user_sync_time = current_time
+                    except Exception as e:
+                        logger.error(f"同步用户数量失败: {str(e)}")
+                
+                # 更新缓存 - 直接从bot_bridge获取start_time，不需要异步调用
+                self._cache['messages'] = messages
+                self._cache['users'] = users
+                self._cache['start_time'] = bot_bridge.start_time
+                self._last_update = current_time
+                logger.info(f"缓存数据已刷新: 消息数={messages}, 用户数={users}, 启动时间={bot_bridge.start_time}")
+            except Exception as e:
+                logger.error(f"刷新缓存数据失败: {str(e)}")
+                # 使用默认值
+                self._cache.setdefault('messages', 0)
+                self._cache.setdefault('users', 0)
+                self._cache.setdefault('start_time', 0)
 
     def get_recent_logs(self, n=100):
         """
@@ -187,7 +257,7 @@ class DataService(metaclass=Singleton):
             if start_time == 0:
                 return 0
 
-            return int(time.time() - start_time)
+            return int(time.time() - float(start_time))
         except Exception as e:
             logger.error(f"计算运行时长失败: {str(e)}")
             return 0

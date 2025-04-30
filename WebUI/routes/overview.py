@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, jsonify
+import asyncio
 
 from WebUI.common.bot_bridge import bot_bridge
 from WebUI.services.bot_service import bot_service
@@ -31,7 +32,41 @@ def index():
 @login_required
 def api_status():
     """获取机器人状态API"""
-    context = bot_bridge.get_profile()
-    context.update(data_service.get_metrics())
-    context.update(bot_service.get_status())
-    return jsonify(context)
+    try:
+        # 获取最新的数据
+        data_service._refresh_cache_data()  # 确保数据是最新的
+        
+        # 获取所有数据
+        context = bot_bridge.get_profile()
+        metrics = data_service.get_metrics()
+        status = bot_service.get_status()
+        
+        # 确保所有数据是可JSON序列化的
+        for k, v in list(metrics.items()):
+            if isinstance(v, (asyncio.Task, asyncio.Future)):
+                try:
+                    # 尝试获取Task的结果
+                    loop = asyncio.get_event_loop()
+                    if v._state == 'PENDING':
+                        metrics[k] = 0  # 如果任务仍在等待，使用默认值
+                    else:
+                        metrics[k] = str(v)  # 安全转换为字符串
+                except Exception:
+                    metrics[k] = 0  # 出错时使用默认值
+        
+        # 确保所有值都是基本数据类型
+        for k, v in list(context.items()):
+            if not isinstance(v, (str, int, float, bool, type(None))):
+                context[k] = str(v)
+        
+        # 更新上下文
+        context.update(metrics)
+        context.update(status)
+        
+        return jsonify(context)
+    except Exception as e:
+        # 返回错误信息
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        })
