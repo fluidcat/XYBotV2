@@ -17,6 +17,7 @@ ignore-protection = false             # 是否忽略风控保护机制，建议�
 XYBotDB-url = "sqlite:///database/xybot.db"
 msgDB-url = "sqlite+aiosqlite:///database/message.db"
 keyvalDB-url = "sqlite+aiosqlite:///database/keyval.db"
+userScheduleTaskDB-url = "sqlite+aiosqlite:///database/user_schedule_task.db"
 
 # 管理员设置
 admins = ["admin-wxid", "admin-wxid"]  # 管理员的wxid列表，可从消息日志中获取
