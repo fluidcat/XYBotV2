@@ -18,7 +18,7 @@ class UserScheduleTask(DeclarativeBase):
 
     task_id = Column(Integer, primary_key=True, nullable=False, unique=True, index=True, autoincrement=True,
                      comment='task_id')
-    user_id = Column(String(20), nullable=False, index=True, comment='user_id')
+    user_id = Column(String(1024), nullable=False, index=True, comment='user_id')
     from_id = Column(String(20), nullable=False, index=True, comment='from_id')
     task_name = Column(String(255), nullable=False, comment='task_name')
     task_msg = Column(String(1024), comment='task_msg')

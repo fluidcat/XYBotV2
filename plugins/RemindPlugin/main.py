@@ -138,9 +138,10 @@ class RemindPlugin(PluginBase):
         # 添加任务到调度器
         triggers = []
         tasks = []
+        user_id = ','.join(list(dict.fromkeys(message["Ats"]))) if message["Ats"] else message['SenderWxid']
         if task_type == 'repeat':
             triggers.append(MyCronTrigger.from_crontab(task_json.get('exec_expression')))
-            tasks.append(UserScheduleTask(user_id=message['SenderWxid'],
+            tasks.append(UserScheduleTask(user_id=user_id,
                                           from_id=message['FromWxid'],
                                           task_name=task_json.get('task'),
                                           task_msg=task_json.get('msg'),
@@ -171,7 +172,7 @@ class RemindPlugin(PluginBase):
 
             for rd in list(dict.fromkeys(run_dates)):
                 triggers.append(DateTrigger(run_date=rd))
-                tasks.append(UserScheduleTask(user_id=message['SenderWxid'],
+                tasks.append(UserScheduleTask(user_id=user_id,
                                               from_id=message['FromWxid'],
                                               task_name=task_json.get('task'),
                                               task_msg=task_json.get('msg'),
@@ -194,7 +195,7 @@ class RemindPlugin(PluginBase):
 
     async def send_reminder(self, bot: WechatAPIClient, task: UserScheduleTask):
         """发送提醒消息"""
-        at = [task.user_id] if task.from_id != task.user_id else []
+        at = list(task.user_id.split(',')) if task.from_id != task.user_id else []
         await bot.send_at_message(task.from_id, task.task_msg, at)
         # 更新任务状态
         task.task_last_exec_time = datetime.now()
