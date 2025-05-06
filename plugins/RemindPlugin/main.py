@@ -2,7 +2,7 @@ import json
 import mimetypes
 import os  # 确保导入os模块
 import textwrap
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from zoneinfo import ZoneInfo
 
@@ -49,11 +49,12 @@ class RemindPlugin(PluginBase):
                         2、如果用户输入内容是定时的任务相关，则要求生成定时任务：
                         - 判断是重复任务还是一次性任务
                         - 定时任务格式：
-                            任务描述：xxxx（一句话描述）
-                            提醒语：友好的提醒文字（要友好！！！重要！！！）
-                            任务类型：一次性任务或重复任务
-                            添加成功提示：xxxxxx
-                            执行表达式：apscheduler cron表达式或日期时间点
+                            task(任务描述)：xxxx（一句话描述）
+                            msg(提醒语)：友好的提醒文字（要友好！！！重要！！！）
+                            task_type(任务类型)：一次性任务或重复任务
+                            tip(添加成功提示)：xxxxxx
+                            task_scope:(任务有效时长,month-任务有效期是整个月,day-任务有效期是一整天,hour-任务有效期是一个小时,time-任务只在某个时间点有效,other-其他)：任务的有效时长，重点你要判断是时长还是时间点
+                            exec_expression(执行表达式)：apscheduler cron表达式或日期时间点
                         3、输出内容只能按照定时任务格式，不能有其他内容
                         
                         例子：
@@ -61,11 +62,17 @@ class RemindPlugin(PluginBase):
                         输出：{}
                         
                         输入：明天早上7点叫我起床
-                        输出：{"task":"起床","msg":"起床啦起床啦","task_type":"once","exec_expression":"2025-04-23 07:00:00", "tip":"好的，我将在明天早上7点提醒你起床"}
+                        输出：{"task":"起床","msg":"起床啦起床啦","task_type":"once","exec_expression":"2025-04-28 07:00:00", "tip":"好的，我将在明天早上7点提醒你起床","task_scope":"time"}
                         
                         输入：每天上午10点开会，请务必参加。
-                        输出：{"task":"开会","msg":"记得开会哦","task_type":"repeat","exec_expression":"0 0 7 * * *","tip":"OK，我将在每天早上10点提醒开会"}
-                        """)
+                        输出：{"task":"开会","msg":"记得开会哦","task_type":"repeat","exec_expression":"0 0 7 * * *","tip":"OK，我将在每天早上10点提醒开会","task_scope":"time"}
+
+                        输入：明天记得叫我出门买东西
+                        输出：{"task":"出门买东西","msg":"记得出门买东西，别忘了","task_type":"once","exec_expression":"2025-04-28 00:00:00", "tip":"好的，我将在明天提醒你出门买东西","task_scope":"day"}
+                        
+                        输入：我老婆1月22日
+                        输出：{"task":"生日提醒","msg":"今天老婆生日哦","task_type":"repeat","exec_expression":"0 0 0 22 1 *","tip":"OK，我将在1月22日提醒您老婆生日","task_scope":"day"}"""
+                                  )
         )
 
         self.role_play = RolePlay(self.ai_bot, 'remind_session', self.prompt)
@@ -128,27 +135,59 @@ class RemindPlugin(PluginBase):
         task_type = task_json.get('task_type', '')
         if not task_type:
             return PLUGIN_PASS
-        task = UserScheduleTask(user_id=message['SenderWxid'],
-                                from_id=message['FromWxid'],
-                                task_name=task_json.get('task'),
-                                task_msg=task_json.get('msg'),
-                                task_type=task_type,
-                                task_exec_expression=task_json.get('exec_expression'),
-                                task_status='not_run',
-                                task_create_time=datetime.now())
-        if not await self.task_db.save_task(task):
-            return PLUGIN_ENDED
         # 添加任务到调度器
+        triggers = []
+        tasks = []
         if task_type == 'repeat':
-            trigger = MyCronTrigger.from_crontab(task_json.get('exec_expression'))
+            triggers.append(MyCronTrigger.from_crontab(task_json.get('exec_expression')))
+            tasks.append(UserScheduleTask(user_id=message['SenderWxid'],
+                                          from_id=message['FromWxid'],
+                                          task_name=task_json.get('task'),
+                                          task_msg=task_json.get('msg'),
+                                          task_type=task_type,
+                                          task_exec_expression=task_json.get('exec_expression'),
+                                          task_status='not_run',
+                                          task_create_time=datetime.now()))
         else:
-            trigger = DateTrigger(run_date=task_json.get('exec_expression'))
-        self.scheduler.add_job(
-            self.send_reminder,  # 任务触发时的回调函数
-            trigger=trigger,
-            args=[bot, task],  # 传递给回调函数的参数
-            id=str(task.task_id)  # 任务ID
-        )
+            # month/day/hour/other/time
+            task_scope = task_json.get('task_scope', '')
+            date_obj = datetime.strptime(task_json.get('exec_expression'), "%Y-%m-%d %H:%M:%S")
+            if task_scope == 'day':
+                run_dates = [
+                    task_json.get('exec_expression'),
+                    (date_obj + timedelta(hours=7, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
+                    (date_obj + timedelta(hours=11, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
+                    (date_obj + timedelta(hours=17, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
+                ]
+            elif task_scope == 'hour':
+                run_dates = [
+                    task_json.get('exec_expression'),
+                    (date_obj + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
+                ]
+            else:
+                run_dates = [
+                    task_json.get('exec_expression')
+                ]
+
+            for rd in list(dict.fromkeys(run_dates)):
+                triggers.append(DateTrigger(run_date=rd))
+                tasks.append(UserScheduleTask(user_id=message['SenderWxid'],
+                                              from_id=message['FromWxid'],
+                                              task_name=task_json.get('task'),
+                                              task_msg=task_json.get('msg'),
+                                              task_type=task_type,
+                                              task_exec_expression=rd,
+                                              task_status='not_run',
+                                              task_create_time=datetime.now()))
+        for index, task in enumerate(tasks):
+            if not await self.task_db.save_task(task):
+                continue
+            self.scheduler.add_job(
+                self.send_reminder,  # 任务触发时的回调函数
+                trigger=triggers[index],
+                args=[bot, task],  # 传递给回调函数的参数
+                id=str(task.task_id)  # 任务ID
+            )
         await bot.send_reply_message(message, task_json.get('tip'))
 
         return PLUGIN_ENDED
