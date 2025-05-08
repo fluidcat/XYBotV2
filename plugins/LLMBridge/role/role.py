@@ -20,9 +20,10 @@ class RolePlay:
         self.bot.sessions.clear_session(self.sessionid)
 
     def action(self, user_action):
+        _desc = self.desc() if callable(self.desc) else self.desc
         session = self.bot.sessions.build_session(self.sessionid)
-        if session.system_prompt != self.desc:  # 目前没有触发session过期事件，这里先简单判断，然后重置
-            session.set_system_prompt(self.desc)
+        if session.system_prompt != _desc:  # 目前没有触发session过期事件，这里先简单判断，然后重置
+            session.set_system_prompt(_desc)
         prompt = self.wrapper % user_action
         return prompt
 

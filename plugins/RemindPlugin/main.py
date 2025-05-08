@@ -41,7 +41,7 @@ class RemindPlugin(PluginBase):
 
         self.ai_bot = create_bot(const.ZHIPU_AI)
         self.model = 'glm-4-flash'
-        self.prompt = (
+        self.prompt = lambda: (
                 "你是智能定时任务生成助手，根据用户提供的任务描述、时间要求，自动生成一个可执行的定时任务方案，现在时间是："
                 + f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}。'
                 + textwrap.dedent("""
@@ -128,7 +128,11 @@ class RemindPlugin(PluginBase):
         reply = self.ai_bot.reply(message["Content"], context).content
         if not reply or reply == '{}':
             return PLUGIN_PASS
-        task_json = json.loads(reply)
+
+        try:
+            task_json = json.loads(reply)
+        except Exception as e:
+            return PLUGIN_PASS
 
         # {"task":"起床","msg":"起床啦起床啦","task_type":"once","exec_expression":"2025-04-23 07:00:00", "tip":"好的，我将在明天早上7点提醒你起床"}
         # {"task":"开会","msg":"记得开会哦","task_type":"repeat","exec_expression":"0 0 7 * * *","tip":"OK，我将在每天早上10点提醒开会"}
