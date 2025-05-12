@@ -11,7 +11,7 @@ logger.level("WEBUI", no=20, color="<blue>")
 logger.level("API", no=1, color="<blue>")
 logger.add(sys.stdout, level="INFO", colorize=True,
            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | {message}")
-logger.add("logs/xybot.log", rotation="10mb", level="DEBUG", encoding="utf-8")
+logger.add("logs/xybot.log", rotation="10 MB", level="DEBUG", encoding="utf-8")
 logger.add("logs/wechatapi.log", level="DEBUG", filter=lambda r: r["level"].name == "API")
 logger.add("logs/webui.log", level="WEBUI", filter=lambda r: r["level"].name == "WEBUI")
 
