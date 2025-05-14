@@ -1,4 +1,5 @@
 import asyncio
+import re
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -178,7 +179,7 @@ class BrowserPage:
         selector = '[class^=TurnCard_turn_container] .markdown-body .annotation_num'
         await self.page.evaluate(f"()=>document.querySelectorAll('{selector}').forEach(el => el.remove());")
         answer = await self.page.locator("[class^=TurnCard_turn_container] .markdown-body").first.text_content()
-        return answer.replace(" 。", "。")
+        return re.sub(r'\n{4,}', '\n\n\n', answer.replace(" 。", "。"))
 
     async def getMarkdownMessage(self, conversation_id: str):
         await self.page.locator('[class*="TurnCard_operation"] >[class*="TurnCard_left_opts"]') \
