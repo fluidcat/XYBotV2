@@ -215,8 +215,6 @@ async def run_bot():
         # 启动调度器
         if scheduler.state == 0:
             scheduler.start()
-        else:
-            scheduler.remove_all_jobs()
         logger.success("定时任务已启动")
 
         # ========== 开始接受消息 ========== #
