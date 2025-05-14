@@ -135,7 +135,7 @@ class DataService(metaclass=Singleton):
                 self._cache['users'] = users
                 self._cache['start_time'] = bot_bridge.start_time
                 self._last_update = current_time
-                logger.info(f"缓存数据已刷新: 消息数={messages}, 用户数={users}, 启动时间={bot_bridge.start_time}")
+                # logger.info(f"缓存数据已刷新: 消息数={messages}, 用户数={users}, 启动时间={bot_bridge.start_time}")
             except Exception as e:
                 logger.error(f"刷新缓存数据失败: {str(e)}")
                 # 使用默认值
