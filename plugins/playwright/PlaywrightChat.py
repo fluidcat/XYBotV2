@@ -211,10 +211,13 @@ class BrowserPage:
 
     async def changeModel(self, model: str = 'deepseekV3'):
         await self.page.locator('xpath=//*[@data-key="deepseekV3" or @data-key="deepseekR1"]').click()
-        if not model or model == 'deepseekV3':
-            await self.page.get_by_role("tooltip").get_by_text('DeepSeek V3').click()
-        else:
-            await self.page.get_by_role("tooltip").get_by_text('DeepSeek R1').click()
+        match model:
+            case 'deepseekR1':
+                await self.page.get_by_role("tooltip").get_by_text('深度思考（R1）').click()
+            case 'qwen3':
+                await self.page.get_by_role("tooltip").get_by_text('千问 3').click()
+            case _:
+                await self.page.get_by_role("tooltip").get_by_text('日常问答（V3）').click()
 
     async def get_content(self) -> str:
         """获取页面内容"""
