@@ -8,6 +8,7 @@ from WechatAPI import WechatAPIClient
 from WechatAPI.Client.protect import protector
 from database.keyvalDB import KeyvalDB
 from database.messsagDB import MessageDB
+from utils.const import *
 from utils.event_manager import EventManager
 import re
 
@@ -32,6 +33,31 @@ class XYBot:
         self.msg_db = MessageDB()
         self.key_db = KeyvalDB()
 
+    async def async_init(self):
+        # "xxx,yyy"
+        bot_whitelist = (await self.key_db.get(KEY_BOT_WHITELIST)) or ""
+        self.whitelist = self.whitelist + bot_whitelist.split(',')
+
+        bot_blacklist = (await self.key_db.get(KEY_BOT_BLACKLIST)) or ""
+        self.blacklist = self.blacklist + bot_blacklist.split(',')
+
+    async def add_white_id(self, ids: list[str]):
+        if not ids:
+            return
+        self.whitelist.extend([wxid for wxid in ids if wxid not in self.whitelist])
+        await self.key_db.set(KEY_BOT_WHITELIST, ','.join(self.whitelist))
+
+    async def remove_white_id(self, ids: list[str]):
+        if not ids:
+            return
+        for wxid in ids:
+            try:
+                while True:
+                    self.whitelist.remove(wxid)
+            except ValueError:
+                pass
+        await self.key_db.set(KEY_BOT_WHITELIST, ','.join(self.whitelist))
+
     def update_profile(self, wxid: str, nickname: str, alias: str, phone: str):
         """更新机器人信息"""
         self.wxid = wxid
@@ -45,7 +71,7 @@ class XYBot:
         # 数据库消息数+1先
         msg_count = int(await self.key_db.get("messages") or 0) + 1
         await self.key_db.set("messages", str(msg_count))
-        
+
         # 同时更新WebUI使用的消息计数键
         await self.key_db.set("bot:stats:message_count", str(msg_count))
 

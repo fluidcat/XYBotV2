@@ -26,19 +26,37 @@ class AdminTool(PluginBase):
         self.enable_schedule = config.get("enable_schedule", False)  # 读取插件开关
 
         sys_config = self.loadConfig("main_config.toml").get('XYBot')
-
-    # 异步初始化
-    async def async_init(self):
-        return
+        self.admins = sys_config.get('admins', [])
+        self.commands = ['#停止响应', '#开启服务', '#停止服务']
 
     @on_text_message(priority=55)
     async def handle_text(self, bot: WechatAPIClient, message: dict):
-        cmd = message.get("command", "")
-        if not cmd.startswith("#") or cmd != '#停止响应':
+        cmds = message.get("command", "").split()
+        if not cmds or not cmds[0].startswith("#"):
             return PLUGIN_PASS
-        bot.stop_sync_message = True
-        logger.info("xybot 已经停止处理消息")
-        await bot.send_reply_message(message, "我已经停止处理消息")
+
+        is_admin = message["FromWxid"] in self.admins or message["SenderWxid"] in self.admins
+        if cmds[0] in self.commands and not is_admin:
+            message['reply_ats'] = [message['SenderWxid']] if message['IsGroup'] else []
+            await bot.send_reply_message(message, f'你不是管理员，无法执行命令\n{message.get("command", "")}')
+            return PLUGIN_ENDED
+
+        match cmds:
+            case ['#停止响应', *_]:
+                bot.stop_sync_message = True
+                logger.info("xybot 已经停止处理消息")
+                await bot.send_reply_message(message, "我已经停止处理消息")
+            case ['#开启服务', *ids]:
+                ids = ids if ids else [message['FromWxid']]
+                await bot.xybot.add_white_id(ids)
+                await bot.send_reply_message(message, "已开启服务")
+            case ['#停止服务', *ids]:
+                ids = ids if ids else [message['FromWxid']]
+                await bot.xybot.remove_white_id(ids)
+                await bot.send_reply_message(message, "已停止服务")
+            case _:
+                return PLUGIN_PASS
+
         return PLUGIN_ENDED
 
     @on_at_message(priority=50)

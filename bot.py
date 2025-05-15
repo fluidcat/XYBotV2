@@ -210,6 +210,8 @@ async def run_bot():
 
         # 初始化机器人
         xybot = XYBot(bot)
+        bot.xybot = xybot
+        await xybot.async_init()
         xybot.update_profile(bot.wxid, bot.nickname, bot.alias, bot.phone)
 
         # 启动调度器

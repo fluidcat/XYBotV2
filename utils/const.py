@@ -4,3 +4,6 @@ PLUGIN_HANDLED = 'handled'
 PLUGIN_ENDED = False
 PLUGIN_FALLBACK = 'Fallback'
 PLUGIN_EXEC_FINISHED = 'exec_finished'
+
+KEY_BOT_WHITELIST = 'bot_whitelist'
+KEY_BOT_BLACKLIST = 'bot_blacklist'
