@@ -4,6 +4,7 @@ import requests
 from loguru import logger
 
 from WechatAPI import WechatAPIClient
+from utils.const import PLUGIN_PASS, PLUGIN_ENDED
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 
@@ -34,11 +35,11 @@ class AdminTool(PluginBase):
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         cmd = message.get("command", "")
         if not cmd.startswith("#") or cmd != '#停止响应':
-            return
+            return PLUGIN_PASS
         bot.stop_sync_message = True
         logger.info("xybot 已经停止处理消息")
         await bot.send_reply_message(message, "我已经停止处理消息")
-        return False
+        return PLUGIN_ENDED
 
     @on_at_message(priority=50)
     async def handle_at(self, bot: WechatAPIClient, message: dict):

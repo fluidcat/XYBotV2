@@ -6,7 +6,7 @@ from loguru import logger
 
 from WechatAPI import WechatAPIClient
 from plugins.playwright.PlaywrightChat import BrowserManager
-from utils.const import PLUGIN_ENDED, PLUGIN_EXEC_FINISHED, PLUGIN_FALLBACK
+from utils.const import *
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 
@@ -70,7 +70,7 @@ class Playwright(PluginBase):
                 return "验证码为空，登录失败"
 
     async def handle_command(self, bot: WechatAPIClient, message: dict):
-        cmd: str = message.get('command')
+        cmd: str = message.get('command').removeprefix('#')
         commands = ['删除记忆', ['使用聊天模型', '使用思考模型'], ['不联网', '联网搜索']]
         if not [c for c in commands if cmd == c or (isinstance(c, list) and cmd in c)]:
             return
@@ -124,6 +124,8 @@ class Playwright(PluginBase):
 
         if await self.handle_command(bot, message):
             return PLUGIN_ENDED
+        if message.get('command', '').startswith('#'):
+            return PLUGIN_PASS
 
         query = f"你是友好的助手，是叫[圆脸]的人的替身。1、根据对话历史和当前问题判断，涉及和老婆感情问题时需要表现出你很爱你的老婆；2、如果用户问题不涉及感情问题时你是一个没有感情的分析处理助手；3、回复问题时不要出现前面的设定逻辑\n用户对你说：{message['Content']}"
         # query = message['Content']

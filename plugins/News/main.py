@@ -6,6 +6,7 @@ from random import sample
 import aiohttp
 
 from WechatAPI import WechatAPIClient
+from utils.const import *
 from utils.decorators import *
 from utils.plugin_base import PluginBase
 from loguru import logger
@@ -39,9 +40,9 @@ class News(PluginBase):
             return
         command = message.get('command')
         if not command.startswith('#'):
-            return
+            return PLUGIN_PASS
         if command.lower().removeprefix('#') not in self.command:
-            return
+            return PLUGIN_PASS
 
         message['reply_ats'] = [message['SenderWxid']] if message['IsGroup'] else []
         finish = True
@@ -64,6 +65,7 @@ class News(PluginBase):
                 async with session.get("http://zj.v.api.aa1.cn/api/60s-v2/?cc=fluidcat") as resp:
                     image_byte = await resp.read()
             await bot.send_image_message(message["FromWxid"], image_byte)
+        return PLUGIN_ENDED
 
     @on_at_message
     async def handle_at(self, bot: WechatAPIClient, message: dict):
@@ -94,7 +96,7 @@ class News(PluginBase):
 
     @schedule('cron', hour='7,12,18,21', jitter=30 * 60)
     async def schedule_msg(self, bot: WechatAPIClient):
-        news = f'📰新闻快报  {datetime.now().strftime("%H:%M")}📰\n\n' + await self.get_news('netease_news', 15)
+        news = f'📰新闻快报  {datetime.now().strftime("%H:%M")}📰\n\n' + await self.get_news('netease_news', 10)
         await self.send_mass(bot, news)
 
     @schedule('cron', hour='8', jitter=30 * 60)
