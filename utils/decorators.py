@@ -248,3 +248,19 @@ def on_link_share_message(priority=50):
         return func
 
     return decorator if not callable(priority) else decorator(priority)
+
+
+def on_command_message(priority=50):
+    """链接分享消息装饰器"""
+
+    def decorator(func):
+        if callable(priority):
+            f = priority
+            setattr(f, '_event_type', 'command_message')
+            setattr(f, '_priority', 50)
+            return f
+        setattr(func, '_event_type', 'command_message')
+        setattr(func, '_priority', min(max(priority, 0), 99))
+        return func
+
+    return decorator if not callable(priority) else decorator(priority)

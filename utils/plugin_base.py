@@ -23,6 +23,7 @@ class PluginBase(ABC):
         self._scheduled_jobs = set()
         self.dir_path = Path(inspect.getmodule(self.__class__).__file__).resolve().parent
         self.loadConfig = loadConfig
+        self.support_commands = []
 
     async def send_mass(self, bot, msg: str):
         return await sch_mass_sender.send_mass(bot, msg)

@@ -19,6 +19,7 @@ class PluginManager(metaclass=Singleton):
         self.plugins: Dict[str, PluginBase] = {}
         self.plugin_classes: Dict[str, Type[PluginBase]] = {}
         self.plugin_info: Dict[str, dict] = {}  # 新增：存储所有插件信息
+        self.plugin_cmds: set = set()  # 新增：存储所有插件命令
 
         self.bot = None
 
@@ -80,6 +81,7 @@ class PluginManager(metaclass=Singleton):
             self.plugins[plugin_name] = plugin
             self.plugin_classes[plugin_name] = plugin_class
             self.plugin_info[plugin_name]["enabled"] = True
+            self.plugin_cmds.update(plugin.support_commands)
             logger.success(f"加载插件 {plugin_name} 成功")
             return True
         except:
@@ -152,6 +154,7 @@ class PluginManager(metaclass=Singleton):
             EventManager.unbind_instance(plugin)
             del self.plugins[plugin_name]
             del self.plugin_classes[plugin_name]
+            self.plugin_cmds.difference_update(plugin.support_commands)
             if plugin_name in self.plugin_info.keys():
                 self.plugin_info[plugin_name]["enabled"] = False
             logger.success(f"卸载插件 {plugin_name} 成功")

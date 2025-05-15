@@ -12,6 +12,8 @@ from utils.const import *
 from utils.event_manager import EventManager
 import re
 
+from utils.plugin_manager import PluginManager
+
 
 class XYBot:
     def __init__(self, bot_client: WechatAPIClient):
@@ -32,6 +34,7 @@ class XYBot:
 
         self.msg_db = MessageDB()
         self.key_db = KeyvalDB()
+        self.plugin_manager = PluginManager()
 
     async def async_init(self):
         # "xxx,yyy"
@@ -162,6 +165,21 @@ class XYBot:
             content=message["Content"],
             is_group=message["IsGroup"]
         )
+        cmds = message['command'].split()
+        if cmds and cmds[0] and cmds[0] in self.plugin_manager.plugin_cmds:
+            logger.info("收到命令消息: 消息ID:{} 来自:{} 发送人:{} @:{} 内容:{}",
+                        message["MsgId"],
+                        message["FromWxid"],
+                        message["SenderWxid"],
+                        message["Ats"],
+                        message["command"])
+
+            if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
+                if self.ignore_protection or not protector.check(14400):
+                    await EventManager.emit("command_message", self.bot, message)
+                else:
+                    logger.warning("风控保护: 新设备登录后4小时内请挂机")
+            return
 
         if self.wxid in ats:
             logger.info("收到被@消息: 消息ID:{} 来自:{} 发送人:{} @:{} 内容:{}",
