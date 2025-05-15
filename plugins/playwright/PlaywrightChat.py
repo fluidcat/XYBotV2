@@ -140,8 +140,10 @@ class BrowserPage:
             await self.page.keyboard.press('Control+K')
             await self.changeModel(model)
             await self.changeSearch(search_type)
-            await self.sendMessage(f"{conversation_id}")
+            await self.sendMessage("你好")
             await self.getMessage()
+            await self.page.wait_for_timeout(1000)
+            await self.set_conversation_id(conversation_id)
         else:
             logger.info(f"PlaywrightChat 切换到会话：conversation_id={conversation_id}")
             await self.page.locator('#history-container-ID').get_by_text(
@@ -180,6 +182,17 @@ class BrowserPage:
         await self.page.evaluate(f"()=>document.querySelectorAll('{selector}').forEach(el => el.remove());")
         answer = await self.page.locator("[class^=TurnCard_turn_container] .markdown-body").first.text_content()
         return re.sub(r'\n{4,}', '\n\n\n', answer.replace(" 。", "。"))
+
+    async def set_conversation_id(self, conversation_id: str):
+        await self.open_conversation_tab()
+        selector = '[class*=page_conversation_list] [class*=ConversationItem_active] [class^=ConversationItem_opt_btn_]'
+        await self.page.evaluate(f"()=>document.querySelector('{selector}').style.display = 'block'")
+        await self.page.locator(selector).first.click()
+        await self.page.locator('.ant-popover').get_by_text('重命名', exact=True).filter(visible=True).click()
+        selector = '[class*=page_conversation_list] [class*=ConversationItem_active] input'
+        await self.page.fill(selector, conversation_id)
+        await self.page.keyboard.press('Enter')
+
 
     async def getMarkdownMessage(self, conversation_id: str):
         await self.page.locator('[class*="TurnCard_operation"] >[class*="TurnCard_left_opts"]') \
@@ -283,10 +296,6 @@ async def main():
         # 创建第一个页面并登录
         wxid = "wxid_23232"
         page = await browser_manager.get_or_create_page(wxid)
-        if not await page.is_login():
-            await page.login("19520652064")
-            code = input("输入验证码")
-            await page.verify_login(code)
 
         await page.new_or_select_conversation(wxid)
         await page.changeModel("deepseekV3")
