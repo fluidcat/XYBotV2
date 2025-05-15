@@ -152,8 +152,8 @@ class DependencyManager(PluginBase):
 
         # 2.1 检查是否明确以GitHub前缀开头 - 要求明确的安装意图
         starts_with_prefix = content.lower().startswith(self.github_install_prefix.lower())
-        logger.info(
-            f"[DependencyManager] 检查是否以'{self.github_install_prefix}'开头: {starts_with_prefix}, 内容: '{content}'")
+        # logger.info(
+        #     f"[DependencyManager] 检查是否以'{self.github_install_prefix}'开头: {starts_with_prefix}, 内容: '{content}'")
 
         # 2.2 GitHub快捷命令 - GeminiImage特殊处理
         if starts_with_prefix and (content.strip().lower() == f"{self.github_install_prefix} gemini" or
@@ -274,7 +274,7 @@ class DependencyManager(PluginBase):
             return False
 
         # 不是本插件的命令
-        logger.debug(f"[DependencyManager] 非依赖管理相关命令，允许其他插件处理")
+        # logger.debug(f"[DependencyManager] 非依赖管理相关命令，允许其他插件处理")
         return True  # 不是命令，允许其他插件处理
 
     async def _handle_install(self, bot: WechatAPIClient, chat_id: str, package_spec: str):
