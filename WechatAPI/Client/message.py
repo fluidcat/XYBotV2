@@ -33,20 +33,25 @@ class MessageMixin(WechatAPIClientBase):
             return
 
         self._is_processing = True
-        while True:
-            if self._message_queue.empty():
-                self._is_processing = False
-                break
+        try:
+            while True:
+                if self._message_queue.empty():
+                    self._is_processing = False
+                    break
 
-            func, args, kwargs, future = await self._message_queue.get()
-            try:
-                result = await func(*args, **kwargs)
-                future.set_result(result)
-            except Exception as e:
-                future.set_exception(e)
-            finally:
-                self._message_queue.task_done()
-                await sleep(1)  # 消息发送间隔1秒
+                func, args, kwargs, future = await self._message_queue.get()
+                try:
+                    result = await func(*args, **kwargs)
+                    future.set_result(result)
+                except Exception as e:
+                    future.set_exception(e)
+                finally:
+                    self._message_queue.task_done()
+                    await sleep(1)
+        finally:
+            self._is_processing = False
+            if not self._message_queue.empty():
+                asyncio.create_task(self._process_message_queue())
 
     async def _queue_message(self, func, *args, **kwargs):
         """
